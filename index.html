@@ -1,1 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="pageTitle">NEXFIT</title>
+  <link id="pageFavicon" rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg">
 
+  <!-- Luxury Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandGold: {
+              DEFAULT: '#C3A36D',
+              light: '#DFCA9D',
+              dark: '#9F7C42',
+              glow: 'rgba(195, 163, 109, 0.16)'
+            },
+            bodyWarm: '#F9F8F5'
+          },
+          fontFamily: {
+            sans: ['"Outfit"', 'sans-serif'],
+            brand: ['"Cinzel"', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #FAF7F2 0%, #F5F1E9 100%) !important;
+      color: #1A1A1A;
+      font-family: 'Outfit', sans-serif;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .gold-border {
+      border: 1px solid rgba(195, 163, 109, 0.28);
+    }
+    .gold-shadow {
+      box-shadow: 0 4px 20px -2px rgba(195, 163, 109, 0.15);
+    }
+    .gold-glow-btn {
+      background: linear-gradient(135deg, #C3A36D 0%, #A9874C 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(195, 163, 109, 0.35);
+    }
+    .gold-glow-btn:hover {
+      background: linear-gradient(135deg, #D4B681 0%, #98783E 100%);
+    }
+
+    .brand-nexfit-text {
+      font-family: 'Cinzel', serif;
+      font-size: 1.65rem;
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      background: linear-gradient(135deg, #1A1A1A 0%, #7A5B27 45%, #C3A36D 70%, #1A1A1A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 1px 2px rgba(195, 163, 109, 0.2);
+    }
+    @media (min-width: 640px) {
+      .brand-nexfit-text {
+        font-size: 2rem;
+        letter-spacing: 0.32em;
+      }
+    }
+
+    .skeleton-box {
+      background: linear-gradient(90deg, #F3ECE1 25%, #E9DFCFA8 50%, #F3ECE1 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @keyframes smoothMarquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: smoothMarquee 26s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    .swiper-pagination-bullet {
+      width: 6px;
+      height: 6px;
+      background: rgba(195, 163, 109, 0.4) !important;
+      opacity: 1 !important;
+      transition: all 0.3s ease;
+    }
+    .swiper-pagination-bullet-active {
+      background: #C3A36D !important;
+      width: 22px !important;
+      border-radius: 9999px;
+    }
+
+    .myNewArrivalsSwiper .swiper-slide {
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
+      transform: scale(0.92);
+      opacity: 0.7;
+    }
+    .myNewArrivalsSwiper .swiper-slide-active {
+      transform: scale(1.03);
+      opacity: 1;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body class="antialiased pb-20 md:pb-0">
+
+  <!-- Toast Notification -->
+  <div id="storeToastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Announcement Bar with Gold Tint -->
+  <div id="announcementBar" class="hidden bg-[#161410] text-[#EADBBE] text-[11px] sm:text-xs py-2 px-4 text-center font-semibold tracking-wider border-b border-[#C3A36D]/30">
+    <span id="announcementText"></span>
+  </div>
+
+  <!-- Main Luxury Header -->
+  <header class="bg-transparent backdrop-blur-md border-b border-[#C3A36D]/20 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
+      
+      <!-- Mobile Menu & Pure Text NEXFIT Logo -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="toggleMenu()" aria-label="Open Navigation" class="md:hidden w-9 h-9 flex items-center justify-center text-slate-900 hover:text-[#A9874C] transition">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+
+        <a href="javascript:void(0)" onclick="navigateTo('home')" class="inline-block py-1">
+          <span id="headerBrandTitle" class="brand-nexfit-text block select-none">NEXFIT</span>
+        </a>
+      </div>
+
+      <!-- Navigation Links (Floating directly on background) -->
+      <nav class="hidden md:flex items-center gap-8 text-xs sm:text-sm font-bold text-slate-800">
+        <a href="#home" onclick="navigateTo('home')" class="hover:text-[#A9874C] transition">Home</a>
+        <a href="#new-arrivals" onclick="navigateTo('catalog', 'New Arrivals')" class="hover:text-[#A9874C] transition flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#C3A36D]"></span>
+          <span>New Arrivals</span>
+        </a>
+        <a href="#collections" onclick="navigateTo('collections')" class="hover:text-[#A9874C] transition">Collections</a>
+        <a href="#combos" onclick="navigateTo('combos')" class="text-[#A9874C] hover:text-[#8E6E37] transition flex items-center gap-1.5 font-black">
+          <span class="w-2 h-2 rounded-full bg-[#C3A36D] animate-pulse"></span>
+          <span>Combo Deals</span>
+        </a>
+        <a href="#all-products" onclick="navigateTo('catalog', 'All Products')" class="hover:text-[#A9874C] transition">All Products</a>
+      </nav>
+
+      <!-- Search & Cart (Clean icons directly on background) -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Desktop Search Bar -->
+        <div class="hidden lg:flex items-center relative w-60">
+          <i data-lucide="search" class="w-4 h-4 text-[#A9874C] absolute left-3 pointer-events-none"></i>
+          <input 
+            type="text" 
+            placeholder="Search NEXFIT..." 
+            onfocus="navigateTo('search')"
+            class="w-full bg-transparent border-b border-[#C3A36D]/40 focus:border-[#A9874C] text-slate-900 py-1.5 pl-9 pr-2 text-xs outline-none transition cursor-pointer font-medium placeholder:text-slate-500"
+          >
+        </div>
+
+        <!-- Mobile Search Icon (No Box) -->
+        <button onclick="navigateTo('search')" aria-label="Search" class="lg:hidden w-9 h-9 flex items-center justify-center text-slate-900 hover:text-[#A9874C] transition">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Cart Icon (No Box) -->
+        <a id="headerCartLink" href="cart.html" aria-label="Shopping Cart" class="w-9 h-9 flex items-center justify-center text-slate-900 hover:text-[#A9874C] transition relative">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span id="headerCartBadge" class="absolute top-0 right-0 min-w-[17px] h-[17px] bg-[#C3A36D] text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-sm">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="sideMenuBackdrop" onclick="toggleMenu()" class="fixed inset-0 bg-[#161410]/60 z-[60] opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"></div>
+  
+  <aside id="sideMenu" class="fixed top-0 left-0 bottom-0 h-full w-[80%] max-w-xs bg-[#FAF8F5] z-[70] shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col justify-between overflow-hidden border-r border-[#C3A36D]/30">
+    <div class="p-4 border-b border-[#C3A36D]/20 flex items-center justify-between shrink-0 bg-white">
+      <div class="flex items-center gap-2.5">
+        <img src="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg" alt="Logo" class="w-8 h-8 rounded-lg object-cover gold-border store-logo-img">
+        <span class="font-brand font-black text-lg text-slate-900 tracking-wider store-name-text">NEXFIT</span>
+      </div>
+      <button onclick="toggleMenu()" aria-label="Close" class="w-8 h-8 rounded-lg hover:bg-[#FAF7F2] flex items-center justify-center text-slate-600">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="p-4 space-y-5 flex-1 overflow-y-auto no-scrollbar">
+      <div>
+        <h4 class="text-[10px] font-bold text-[#A68853] uppercase tracking-widest mb-2 px-1 font-brand">Navigation</h4>
+        <ul class="space-y-1 text-xs font-semibold text-slate-800">
+          <li>
+            <a href="javascript:void(0)" onclick="navigateTo('home'); toggleMenu();" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white transition">
+              <i data-lucide="home" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span>Home</span>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(0)" onclick="navigateTo('catalog', 'New Arrivals'); toggleMenu();" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white transition">
+              <i data-lucide="sparkles" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span>New Arrivals</span>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(0)" onclick="navigateTo('combos'); toggleMenu();" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-amber-50 text-[#8E6E37] transition font-bold">
+              <i data-lucide="tag" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span>Combo Deals</span>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(0)" onclick="navigateTo('collections'); toggleMenu();" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white transition">
+              <i data-lucide="grid" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span>Collections</span>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(0)" onclick="navigateTo('catalog', 'All Products'); toggleMenu();" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white transition">
+              <i data-lucide="package" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span>All Products</span>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(0)" onclick="openTrackOrderModal(); toggleMenu();" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white transition">
+              <i data-lucide="truck" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span>Track Order</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="border-t border-[#C3A36D]/20 pt-4">
+        <h4 class="text-[10px] font-bold text-[#A68853] uppercase tracking-widest mb-2 px-1 font-brand">Categories</h4>
+        <div id="drawerCategories" class="space-y-1"></div>
+      </div>
+    </div>
+
+    <div class="p-4 border-t border-[#C3A36D]/20 bg-[#F4EEE4] space-y-2 shrink-0">
+      <a id="drawerWaBtn" href="https://wa.me/8801951149441" target="_blank" rel="noopener noreferrer" class="w-full bg-[#1A1815] text-[#EADBBE] hover:bg-black py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm border border-[#C3A36D]/30">
+        <i data-lucide="message-circle" class="w-4 h-4 text-[#C3A36D]"></i>
+        <span>Chat on WhatsApp</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main id="appContent" class="min-h-screen">
+
+    <!-- VIEW 1: HOME -->
+    <section id="view-home" class="spa-view block">
+      
+      <!-- Hero Banner Slider -->
+      <div class="w-full max-w-7xl mx-auto sm:px-4 md:px-6 pt-0 sm:pt-4">
+        <div class="swiper myHeroSwiper w-full h-44 sm:h-64 md:h-80 lg:h-[390px] sm:rounded-2xl overflow-hidden bg-[#EFE9DF] relative shadow-sm border-b sm:border border-[#C3A36D]/30">
+          <div class="swiper-wrapper" id="bannerSliderWrapper">
+            <div class="swiper-slide skeleton-box w-full h-full"></div>
+          </div>
+          <div class="swiper-pagination !bottom-2 sm:!bottom-3"></div>
+        </div>
+      </div>
+
+      <!-- Trust Badges Marquee -->
+      <div class="w-full max-w-7xl mx-auto pt-4 pb-2 overflow-hidden px-2 sm:px-4">
+        <div class="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
+          <div class="marquee-track flex items-center gap-3 py-1">
+            <div class="flex items-center gap-2 bg-white/90 border border-[#C3A36D]/30 rounded-xl px-4 py-2 shadow-sm shrink-0">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span class="text-xs font-bold text-slate-800 whitespace-nowrap">7-Day Easy Exchange</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white/90 border border-[#C3A36D]/30 rounded-xl px-4 py-2 shadow-sm shrink-0">
+              <i data-lucide="badge-percent" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span class="text-xs font-bold text-slate-800 whitespace-nowrap">Cash On Delivery</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white/90 border border-[#C3A36D]/30 rounded-xl px-4 py-2 shadow-sm shrink-0">
+              <i data-lucide="truck" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span class="text-xs font-bold text-slate-800 whitespace-nowrap">Express Shipping</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white/90 border border-[#C3A36D]/30 rounded-xl px-4 py-2 shadow-sm shrink-0">
+              <i data-lucide="shield-check" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span class="text-xs font-bold text-slate-800 whitespace-nowrap">100% Original Quality</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white/90 border border-[#C3A36D]/30 rounded-xl px-4 py-2 shadow-sm shrink-0">
+              <i data-lucide="message-circle" class="w-4 h-4 text-[#C3A36D]"></i>
+              <span class="text-xs font-bold text-slate-800 whitespace-nowrap">Direct WhatsApp Support</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+        <div class="flex items-center justify-between mb-3.5">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-[#C3A36D] rounded-full"></span>
+            <h2 class="text-base sm:text-xl font-bold tracking-tight text-slate-900 font-brand">Categories</h2>
+          </div>
+          <button onclick="navigateTo('collections')" class="text-xs font-bold text-[#8E6E37] hover:text-[#644D25] transition flex items-center gap-1 group py-1">
+            <span>View All</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+          </button>
+        </div>
+
+        <div class="swiper myCategorySwiper overflow-hidden pb-1">
+          <div class="swiper-wrapper" id="homeCategorySliderWrapper">
+            <div class="swiper-slide !w-28 sm:!w-36 skeleton-box aspect-square rounded-2xl"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combos Section -->
+      <div id="homeCombosContainer" class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-2 hidden">
+        <div class="flex items-center justify-between mb-3.5">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#C3A36D] animate-ping"></span>
+            <h2 class="text-base sm:text-xl font-bold tracking-tight text-slate-900 font-brand">Combo Deals</h2>
+          </div>
+          <button onclick="navigateTo('combos')" class="text-xs font-bold text-[#8E6E37] hover:text-[#644D25] transition flex items-center gap-1 group py-1">
+            <span>Explore All</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+          </button>
+        </div>
+
+        <div class="swiper myCombosSwiper overflow-hidden py-1">
+          <div class="swiper-wrapper" id="homeCombosSliderWrapper"></div>
+        </div>
+      </div>
+
+      <!-- ==================== NEW ARRIVALS (3D CENTERED CAROUSEL) ==================== -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-2" id="newArrivalsContainer">
+        <div class="flex items-center justify-between mb-3.5">
+          <div class="flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-[#C3A36D]"></i>
+            <h2 class="text-base sm:text-xl font-bold tracking-tight text-slate-900 font-brand">New Arrivals</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="hidden sm:flex items-center gap-1">
+              <button id="newArrPrev" aria-label="Previous" class="w-7 h-7 rounded-full border border-[#C3A36D]/30 bg-white flex items-center justify-center hover:bg-[#C3A36D] hover:text-white transition shadow-sm">
+                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+              </button>
+              <button id="newArrNext" aria-label="Next" class="w-7 h-7 rounded-full border border-[#C3A36D]/30 bg-white flex items-center justify-center hover:bg-[#C3A36D] hover:text-white transition shadow-sm">
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <button onclick="navigateTo('catalog', 'New Arrivals')" class="text-xs font-bold text-[#8E6E37] hover:text-[#644D25] transition flex items-center gap-1 group py-1">
+              <span>View All</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="swiper myNewArrivalsSwiper overflow-hidden py-4">
+          <div class="swiper-wrapper" id="newArrivalsSliderWrapper">
+            <div class="swiper-slide !w-52 sm:!w-64 skeleton-box h-80 rounded-2xl"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Sections Container -->
+      <div id="dynamicSectionsContainer" class="space-y-8 pb-10"></div>
+
+      <!-- Luxury Light Footer -->
+      <footer class="bg-[#FAF8F5]/80 backdrop-blur-md border-t border-[#C3A36D]/30 pt-12 pb-8 text-slate-600">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8 pb-10">
+          
+          <div class="space-y-3 md:col-span-1">
+            <div class="flex items-center">
+              <span class="brand-nexfit-text !text-2xl select-none leading-tight">NEXFIT</span>
+            </div>
+            <p class="text-xs leading-relaxed text-slate-500 max-w-sm">
+              Engineered sportswear and modern luxury lifestyle essentials built with premium high-durability fabrics.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-[#8E6E37] uppercase tracking-wider mb-3 font-brand">Quick Links</h3>
+            <ul class="space-y-2.5 text-xs font-semibold">
+              <li><a href="javascript:void(0)" onclick="navigateTo('home')" class="hover:text-[#8E6E37] transition">Home</a></li>
+              <li><a href="javascript:void(0)" onclick="navigateTo('catalog', 'New Arrivals')" class="hover:text-[#8E6E37] transition">New Arrivals</a></li>
+              <li><a href="javascript:void(0)" onclick="navigateTo('combos')" class="hover:text-[#8E6E37] transition">Combo Deals</a></li>
+              <li><a href="javascript:void(0)" onclick="navigateTo('collections')" class="hover:text-[#8E6E37] transition">Collections</a></li>
+              <li><a id="footerCartLink" href="cart.html" class="hover:text-[#8E6E37] transition">Shopping Bag</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-[#8E6E37] uppercase tracking-wider mb-3 font-brand">Customer Support</h3>
+            <ul class="space-y-2.5 text-xs font-semibold">
+              <li><a href="javascript:void(0)" onclick="openTrackOrderModal()" class="hover:text-[#8E6E37] transition flex items-center gap-1.5"><i data-lucide="truck" class="w-3.5 h-3.5 text-[#C3A36D]"></i> Track Order</a></li>
+              <li><a id="footerWaLink" href="https://wa.me/8801951149441" target="_blank" rel="noopener noreferrer" class="hover:text-[#8E6E37] transition">WhatsApp Desk</a></li>
+              <li><span class="text-slate-400">7 Days Easy Return Policy</span></li>
+              <li><span class="text-slate-400">100% Quality Assured</span></li>
+            </ul>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-xs font-bold text-[#8E6E37] uppercase tracking-wider mb-3 font-brand">Official Contact</h3>
+            <div class="flex items-center gap-2.5 text-xs">
+              <i data-lucide="phone" class="w-4 h-4 text-[#C3A36D] shrink-0"></i>
+              <a id="footerPhone" href="tel:01951149441" class="text-slate-900 font-bold hover:text-[#8E6E37]">01951149441</a>
+            </div>
+            <div class="flex items-center gap-2.5 text-xs text-slate-600">
+              <i data-lucide="mail" class="w-4 h-4 text-[#C3A36D] shrink-0"></i>
+              <a href="mailto:jabedbinz@gmail.com" class="hover:text-[#8E6E37]">jabedbinz@gmail.com</a>
+            </div>
+            
+            <div id="footerFacebookWrap" class="pt-2 border-t border-[#C3A36D]/20">
+              <a id="footerFacebook" href="https://www.facebook.com/share/1ESswppdDU/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs text-slate-700 hover:text-blue-600 font-semibold group">
+                <span class="w-7 h-7 rounded-full bg-[#1877F2] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </span>
+                <span>Official Facebook Page</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 border-t border-[#C3A36D]/20 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <div>&copy; <span id="currentYear"></span> <span class="font-bold text-slate-800">NEXFIT</span>. All rights reserved.</div>
+          <div class="text-xs text-slate-500">
+            Powered by <a href="https://tiodisk.top" target="_blank" rel="noopener noreferrer" class="text-[#8E6E37] font-bold hover:underline">tioDisk</a>
+          </div>
+        </div>
+      </footer>
+
+    </section>
+
+    <!-- VIEW 2: COMBOS -->
+    <section id="view-combos" class="spa-view hidden max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div class="flex items-center gap-3 mb-5 border-b border-[#C3A36D]/20 pb-3">
+        <button onclick="goBack()" aria-label="Back" class="w-9 h-9 rounded-xl hover:bg-white border border-[#C3A36D]/30 flex items-center justify-center text-slate-900 transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        <h1 class="text-lg font-bold text-slate-900 font-brand">Special Combo Deals</h1>
+      </div>
+      <div id="allCombosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </section>
+
+    <!-- VIEW 3: COLLECTIONS -->
+    <section id="view-collections" class="spa-view hidden max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div class="flex items-center gap-3 mb-5 border-b border-[#C3A36D]/20 pb-3">
+        <button onclick="goBack()" aria-label="Back" class="w-9 h-9 rounded-xl hover:bg-white border border-[#C3A36D]/30 flex items-center justify-center text-slate-900 transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        <h1 class="text-lg font-bold text-slate-900 font-brand">All Collections</h1>
+      </div>
+      <div id="allCollectionsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5"></div>
+    </section>
+
+    <!-- VIEW 4: CATALOG -->
+    <section id="view-catalog" class="spa-view hidden max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div class="flex items-center gap-3 mb-5 border-b border-[#C3A36D]/20 pb-3">
+        <button onclick="goBack()" aria-label="Back" class="w-9 h-9 rounded-xl hover:bg-white border border-[#C3A36D]/30 flex items-center justify-center text-slate-900 transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 font-brand" id="catalogViewTitle">Catalog</h1>
+          <p class="text-xs text-slate-500 font-medium" id="catalogViewSubtitle">Available items</p>
+        </div>
+      </div>
+      <div id="catalogProductGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div>
+    </section>
+
+    <!-- VIEW 5: SEARCH -->
+    <section id="view-search" class="spa-view hidden max-w-7xl mx-auto px-4 sm:px-6 py-6 min-h-[75vh]">
+      <div class="flex items-center gap-3 mb-5 border-b border-[#C3A36D]/20 pb-3">
+        <button onclick="goBack()" aria-label="Back" class="w-9 h-9 rounded-xl hover:bg-white border border-[#C3A36D]/30 flex items-center justify-center text-slate-900 transition shrink-0">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+
+        <div class="relative flex-1 max-w-xl">
+          <i data-lucide="search" class="w-4 h-4 text-[#A9874C] absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search apparel, collections..." 
+            oninput="handleSearchInput(event)"
+            class="w-full bg-white border border-[#C3A36D]/30 focus:border-[#C3A36D] text-slate-900 rounded-xl py-2.5 pl-10 pr-10 text-xs sm:text-sm outline-none transition font-medium"
+            autocomplete="off"
+          >
+          <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-4 px-1">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-brand" id="searchResultSummary">All Products</h3>
+        <span class="text-xs text-[#A9874C] font-bold" id="searchResultCount">0 items</span>
+      </div>
+
+      <div id="searchProductGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Bottom Bar -->
+  <div class="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-[#C3A36D]/30 z-50 px-3 py-2 flex items-center justify-around shadow-[0_-4px_16px_rgba(195,163,109,0.12)]">
+    <button onclick="navigateTo('home')" class="flex flex-col items-center gap-1 text-[#A9874C] py-1">
+      <i data-lucide="home" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Home</span>
+    </button>
+    <button onclick="navigateTo('collections')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-[#A9874C] py-1">
+      <i data-lucide="grid" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Category</span>
+    </button>
+    <button onclick="navigateTo('search')" class="flex flex-col items-center gap-1 text-slate-600 hover:text-[#A9874C] py-1">
+      <i data-lucide="search" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Search</span>
+    </button>
+    <a id="mobileBottomCartLink" href="cart.html" class="flex flex-col items-center gap-1 text-slate-600 hover:text-[#A9874C] py-1 relative">
+      <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Bag</span>
+      <span id="mobileBottomCartBadge" class="absolute -top-1 right-2 min-w-[17px] h-[17px] bg-[#C3A36D] text-white text-[9px] font-black rounded-full flex items-center justify-center px-1">0</span>
+    </a>
+  </div>
+
+  <!-- Floating Contact Buttons -->
+  <div class="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 flex flex-col gap-2.5">
+    <a id="floatingWaBtn" href="https://wa.me/8801951149441" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-105 transition active:scale-95">
+      <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24">
+        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+      </svg>
+    </a>
+    <a id="floatingFbBtn" href="https://www.facebook.com/share/1ESswppdDU/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="w-12 h-12 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-lg hover:scale-105 transition active:scale-95">
+      <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+      </svg>
+    </a>
+  </div>
+
+  <!-- Combo Quick Modal -->
+  <div id="comboQuickModal" class="fixed inset-0 z-50 bg-[#161410]/70 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl shadow-2xl border border-[#C3A36D]/30 overflow-hidden max-h-[85vh] flex flex-col">
+      <div class="p-4 border-b border-[#C3A36D]/20 flex items-center justify-between">
+        <div>
+          <span class="bg-[#C3A36D] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full" id="modalComboBadge">Bundle Deal</span>
+          <h3 id="modalComboTitle" class="text-sm sm:text-base font-bold text-slate-900 mt-1 truncate">Combo Bundle</h3>
+        </div>
+        <button onclick="closeComboQuickModal()" class="w-8 h-8 rounded-lg bg-[#FAF7F2] hover:bg-slate-200 flex items-center justify-center text-slate-700">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 space-y-3 overflow-y-auto no-scrollbar flex-1">
+        <div class="bg-amber-50/60 border border-[#C3A36D]/30 p-3.5 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-[#8E6E37] uppercase tracking-wider block">Special Offer Price</span>
+            <span class="text-lg font-black text-slate-900 font-brand" id="modalComboPrice">Tk 0</span>
+          </div>
+          <div id="modalComboFreeDel" class="text-xs font-bold text-[#8E6E37] bg-white border border-[#C3A36D]/30 px-2.5 py-1 rounded-full hidden">
+            Free Delivery
+          </div>
+        </div>
+        <div id="modalComboItemsList" class="space-y-2.5"></div>
+      </div>
+
+      <div class="p-3.5 bg-[#FAF8F5] border-t border-[#C3A36D]/20 flex items-center gap-2.5">
+        <button onclick="addComboToCartAction()" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 border border-[#C3A36D]/30 py-3 rounded-xl text-xs font-bold transition shadow-sm active:scale-95">
+          Add To Bag
+        </button>
+        <button onclick="buyComboNowAction()" class="flex-1 gold-glow-btn py-3 rounded-xl text-xs font-black transition active:scale-95">
+          Order Bundle Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION SCRIPTS & INSTANT CACHING ==================== -->
+  <script>
+    document.getElementById('currentYear').innerText = new Date().getFullYear();
+    let LOGO_PLACEHOLDER = "https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentShop = urlParams.get('shop') || 'nextfit';
+    const CART_STORAGE_KEY = `cart_${currentShop}`;
+    const CACHE_KEY = `store_cache_${currentShop}`;
+
+    const cartUrlWithShop = `cart.html?shop=${encodeURIComponent(currentShop)}`;
+    ['headerCartLink', 'footerCartLink', 'mobileBottomCartLink'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.href = cartUrlWithShop;
+    });
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2txpRBwRAtKisXlsslm2BosSJ3rxrXQg",
+      authDomain: "tiodisk-d97c1.firebaseapp.com",
+      databaseURL: "https://tiodisk-d97c1-default-rtdb.firebaseio.com",
+      projectId: "tiodisk-d97c1",
+      storageBucket: "tiodisk-d97c1.firebasestorage.app",
+      messagingSenderId: "874244971549",
+      appId: "1:874244971549:web:7bf9532a6b6dcb1f8bbaf4"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const PATHS = {
+      settings: `stores/${currentShop}/settings`,
+      announcement: `stores/${currentShop}/announcement`,
+      banners: `stores/${currentShop}/banners`,
+      categories: `stores/${currentShop}/categories`,
+      products: `stores/${currentShop}/products`,
+      campaigns: `stores/${currentShop}/campaigns`
+    };
+
+    let allProducts = [];
+    let allCategories = [];
+    let allCampaigns = [];
+
+    let heroSwiper = null;
+    let combosSwiper = null;
+    let categorySwiper = null;
+    let newArrivalsSwiper = null;
+
+    let activeQuickCombo = null;
+    let comboItemSelections = {};
+
+    function optImg(url, width = 450) {
+      if (!url) return LOGO_PLACEHOLDER;
+      if (typeof url === 'string' && url.includes('cloudinary.com') && url.includes('/upload/')) {
+        return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+      }
+      return url;
+    }
+
+    function showStoreToast(msg) {
+      const container = document.getElementById('storeToastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border border-[#C3A36D]/40 text-xs font-bold shadow-xl flex items-center gap-2 bg-[#1A1815] text-[#EADBBE]';
+      toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-[#C3A36D]"></i><span>${msg}</span>`;
+      container.appendChild(toast);
+      if (window.lucide) lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 2400);
+    }
+
+    /* ========================================================
+       INSTANT CACHE SYSTEM (লোকাল স্টোরেজ থেকে সাথে সাথে লোড)
+       ======================================================== */
+    function getCache(key) {
+      try {
+        const val = localStorage.getItem(`${CACHE_KEY}_${key}`);
+        return val ? JSON.parse(val) : null;
+      } catch (e) { return null; }
+    }
+
+    function setCache(key, data) {
+      try {
+        localStorage.setItem(`${CACHE_KEY}_${key}`, JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    // Load instantly from Cache if available
+    function loadFromCacheInitial() {
+      const cachedBanners = getCache('banners');
+      if (cachedBanners) renderBannersUI(cachedBanners);
+
+      const cachedCategories = getCache('categories');
+      if (cachedCategories) renderCategoriesUI(cachedCategories);
+
+      const cachedCombos = getCache('campaigns');
+      if (cachedCombos) {
+        allCampaigns = cachedCombos;
+        renderCombosUI();
+      }
+
+      const cachedProducts = getCache('products');
+      if (cachedProducts) {
+        allProducts = cachedProducts;
+        renderNewArrivalsSlider();
+        buildHomeSections();
+      }
+
+      const cachedAnnouncement = getCache('announcement');
+      if (cachedAnnouncement) renderAnnouncementUI(cachedAnnouncement);
+
+      const cachedSettings = getCache('settings');
+      if (cachedSettings) renderSettingsUI(cachedSettings);
+    }
+
+    // Live Settings
+    function renderSettingsUI(s) {
+      if (!s) return;
+      document.querySelectorAll('.store-name-text').forEach(el => el.innerText = "NEXFIT");
+      if (s.phone) {
+        const fPhone = document.getElementById('footerPhone');
+        if (fPhone) { fPhone.href = `tel:${s.phone}`; fPhone.innerText = s.phone; }
+      }
+      const waNumber = s.whatsapp || s.phone || '8801951149441';
+      const cleanWa = String(waNumber).replace(/[^0-9]/g, '');
+      const waLink = `https://wa.me/${cleanWa}`;
+      ['floatingWaBtn', 'footerWaLink', 'drawerWaBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.href = waLink;
+      });
+      const fbLink = s.facebook || 'https://www.facebook.com/share/1ESswppdDU/';
+      const fbEl = document.getElementById('footerFacebook');
+      if (fbEl) fbEl.href = fbLink;
+      const flFb = document.getElementById('floatingFbBtn');
+      if (flFb) flFb.href = fbLink;
+    }
+
+    db.ref(PATHS.settings).on('value', snap => {
+      const s = snap.val();
+      if (s) {
+        setCache('settings', s);
+        renderSettingsUI(s);
+      }
+    });
+
+    // Announcement
+    function renderAnnouncementUI(val) {
+      const aText = document.getElementById('announcementText');
+      const aBar = document.getElementById('announcementBar');
+      if (val && typeof val === 'string' && val.trim()) {
+        if (aText) aText.innerText = val;
+        if (aBar) aBar.classList.remove('hidden');
+      } else {
+        if (aBar) aBar.classList.add('hidden');
+      }
+    }
+
+    db.ref(PATHS.announcement).on('value', snap => {
+      const val = snap.val();
+      setCache('announcement', val);
+      renderAnnouncementUI(val);
+    });
+
+    // Hero Banners
+    function renderBannersUI(data) {
+      const wrapper = document.getElementById('bannerSliderWrapper');
+      if (!wrapper || !data) return;
+      wrapper.innerHTML = '';
+      Object.values(data).forEach((banner, idx) => {
+        if (!banner) return;
+        const slide = document.createElement('div');
+        slide.className = 'swiper-slide w-full h-full relative overflow-hidden bg-[#F4EEE4]';
+        slide.innerHTML = `<img src="${optImg(banner.imageUrl || banner, 1200)}" alt="Banner" class="w-full h-full object-cover" ${idx === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}>`;
+        wrapper.appendChild(slide);
+      });
+      if (heroSwiper) heroSwiper.destroy(true, true);
+      heroSwiper = new Swiper('.myHeroSwiper', {
+        loop: true,
+        speed: 600,
+        autoplay: { delay: 4000, disableOnInteraction: false },
+        pagination: { el: '.swiper-pagination', clickable: true },
+      });
+    }
+
+    db.ref(PATHS.banners).on('value', snap => {
+      const data = snap.val();
+      if (data) {
+        setCache('banners', data);
+        renderBannersUI(data);
+      }
+    });
+
+    // Categories
+    function renderCategoriesUI(data) {
+      const sliderWrapper = document.getElementById('homeCategorySliderWrapper');
+      const allGrid = document.getElementById('allCollectionsGrid');
+      const drawerList = document.getElementById('drawerCategories');
+
+      if (sliderWrapper) sliderWrapper.innerHTML = '';
+      if (allGrid) allGrid.innerHTML = '';
+      if (drawerList) drawerList.innerHTML = '';
+      allCategories = [];
+      if (!data) return;
+
+      Object.entries(data).forEach(([key, rawCat]) => {
+        if (!rawCat) return;
+        const cat = typeof rawCat === 'string' ? { name: rawCat, imageUrl: LOGO_PLACEHOLDER } : rawCat;
+        if (!cat.name) cat.name = key;
+        allCategories.push(cat);
+
+        if (sliderWrapper) {
+          const slide = document.createElement('div');
+          slide.className = "swiper-slide !w-28 sm:!w-36 flex flex-col items-center text-center cursor-pointer group select-none";
+          slide.onclick = () => navigateTo('catalog', cat.name);
+          slide.innerHTML = `
+            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-white border border-[#C3A36D]/30 group-hover:border-[#C3A36D] gold-shadow transition">
+              <img src="${optImg(cat.imageUrl, 250)}" alt="${cat.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+            </div>
+            <h3 class="text-xs font-bold text-slate-800 mt-2 truncate w-full group-hover:text-[#A9874C] transition">${cat.name}</h3>
+          `;
+          sliderWrapper.appendChild(slide);
+        }
+
+        if (allGrid) {
+          const gridCard = document.createElement('div');
+          gridCard.className = "flex flex-col items-center text-center cursor-pointer group p-2 bg-white border border-[#C3A36D]/30 rounded-2xl hover:border-[#C3A36D] transition gold-shadow";
+          gridCard.onclick = () => navigateTo('catalog', cat.name);
+          gridCard.innerHTML = `
+            <div class="w-full aspect-square rounded-xl overflow-hidden bg-slate-100 mb-2">
+              <img src="${optImg(cat.imageUrl, 250)}" alt="${cat.name}" class="w-full h-full object-cover group-hover:scale-105 transition">
+            </div>
+            <h3 class="text-xs font-bold text-slate-900 truncate w-full">${cat.name}</h3>
+          `;
+          allGrid.appendChild(gridCard);
+        }
+
+        if (drawerList) {
+          const dItem = document.createElement('a');
+          dItem.href = "javascript:void(0)";
+          dItem.className = "block p-2 text-xs text-slate-700 hover:text-[#A9874C] hover:bg-white rounded-lg transition font-bold";
+          dItem.innerText = cat.name;
+          dItem.onclick = () => { toggleMenu(); navigateTo('catalog', cat.name); };
+          drawerList.appendChild(dItem);
+        }
+      });
+
+      if (categorySwiper) categorySwiper.destroy(true, true);
+      categorySwiper = new Swiper('.myCategorySwiper', {
+        slidesPerView: 'auto',
+        spaceBetween: 12,
+        freeMode: true
+      });
+      buildHomeSections();
+    }
+
+    db.ref(PATHS.categories).on('value', snap => {
+      const data = snap.val();
+      if (data) {
+        setCache('categories', data);
+        renderCategoriesUI(data);
+      }
+    });
+
+    // Combos
+    db.ref(PATHS.campaigns).on('value', snap => {
+      const data = snap.val();
+      allCampaigns = [];
+      if (data) {
+        Object.entries(data).forEach(([id, val]) => {
+          if (val) allCampaigns.push({ id, ...val });
+        });
+        setCache('campaigns', allCampaigns);
+      }
+      renderCombosUI();
+    });
+
+    function renderCombosUI() {
+      const container = document.getElementById('homeCombosContainer');
+      const wrapper = document.getElementById('homeCombosSliderWrapper');
+      const allGrid = document.getElementById('allCombosGrid');
+
+      if (wrapper) wrapper.innerHTML = '';
+      if (allGrid) allGrid.innerHTML = '';
+
+      if (allCampaigns.length === 0) {
+        if (container) container.classList.add('hidden');
+        return;
+      }
+
+      if (container) container.classList.remove('hidden');
+
+      allCampaigns.forEach(c => {
+        const card = createComboCard(c);
+        if (wrapper) {
+          const slide = document.createElement('div');
+          slide.className = 'swiper-slide !w-80 sm:!w-96';
+          slide.appendChild(card);
+          wrapper.appendChild(slide);
+        }
+        if (allGrid) {
+          allGrid.appendChild(createComboCard(c));
+        }
+      });
+
+      if (combosSwiper) combosSwiper.destroy(true, true);
+      combosSwiper = new Swiper('.myCombosSwiper', {
+        slidesPerView: 'auto',
+        spaceBetween: 14,
+        freeMode: true
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function createComboCard(c) {
+      const products = c.products || [];
+      const prodCount = products.length;
+
+      let prodThumbnails = products.slice(0, 4).map(p => `
+        <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm -ml-2.5 first:ml-0 bg-slate-100 shrink-0">
+          <img src="${p.imageUrl || LOGO_PLACEHOLDER}" class="w-full h-full object-cover">
+        </div>
+      `).join('');
+
+      const card = document.createElement('div');
+      card.className = "bg-white border border-[#C3A36D]/30 hover:border-[#C3A36D] rounded-2xl p-4 shadow-sm transition flex flex-col justify-between space-y-3";
+
+      card.innerHTML = `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="bg-[#C3A36D] text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full">
+              ${c.badge || 'Bundle Deal'}
+            </span>
+            <span class="text-[11px] font-bold text-slate-500">${prodCount} Items</span>
+          </div>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${c.title}</h3>
+          <div class="flex items-center pl-2 py-1">${prodThumbnails}</div>
+        </div>
+
+        <div class="pt-3 border-t border-[#C3A36D]/20 flex items-center justify-between">
+          <div>
+            <span class="block text-[9px] uppercase font-bold text-slate-400">Bundle Price</span>
+            <span class="text-sm sm:text-base font-black text-slate-900 font-brand">Tk ${Number(c.comboPrice || 0).toLocaleString()}</span>
+          </div>
+          <button onclick="openComboQuickModal('${c.id}')" class="bg-[#1A1815] hover:bg-black text-[#EADBBE] px-3.5 py-2 rounded-xl text-xs font-bold transition border border-[#C3A36D]/40">
+            Select Offer
+          </button>
+        </div>
+      `;
+      return card;
+    }
+
+    // Products Listener
+    db.ref(PATHS.products).on('value', snap => {
+      const data = snap.val();
+      allProducts = [];
+      if (data) {
+        Object.entries(data).forEach(([id, item]) => {
+          if (item && typeof item === 'object') allProducts.push({ id, ...item });
+        });
+        setCache('products', allProducts);
+      }
+      renderNewArrivalsSlider();
+      buildHomeSections();
+    });
+
+    function getProductTotalStock(p) {
+      if (!p) return 0;
+      if (p.sizeStock && typeof p.sizeStock === 'object') {
+        const sizeVals = Object.values(p.sizeStock).map(v => Number(v) || 0);
+        if (sizeVals.length > 0) return sizeVals.reduce((a, b) => a + b, 0);
+      }
+      return Number(p.stock) || 0;
+    }
+
+    // Product Card with Luxury Accents
+    function createProductCard(p) {
+      const totalStock = getProductTotalStock(p);
+      const isOut = totalStock <= 0;
+      const hasDiscount = p.discountPrice && Number(p.discountPrice) < Number(p.regularPrice);
+      const discountPercent = hasDiscount ? Math.round(((p.regularPrice - p.discountPrice) / p.regularPrice) * 100) : null;
+
+      const card = document.createElement('div');
+      card.className = "flex flex-col bg-white border border-[#C3A36D]/25 hover:border-[#C3A36D] rounded-2xl overflow-hidden group hover:shadow-md transition-all duration-200";
+
+      let badgesHtml = '';
+      if (isOut) {
+        badgesHtml += `<span class="bg-slate-800 text-white font-black text-[9px] px-2 py-0.5 rounded-md">Sold Out</span>`;
+      } else {
+        if (discountPercent) badgesHtml += `<span class="bg-red-500 text-white font-black text-[9px] px-2 py-0.5 rounded-md">-${discountPercent}%</span>`;
+        if (p.isFreeDelivery) badgesHtml += `<span class="bg-amber-50 text-[#8E6E37] border border-[#C3A36D]/30 text-[9px] font-black px-2 py-0.5 rounded-md">Free Delivery</span>`;
+      }
+
+      let sizesHtml = '';
+      if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0) {
+        sizesHtml = `<div class="flex gap-1 mt-1 flex-wrap">
+          ${p.sizes.map(s => {
+            const szVal = typeof s === 'object' ? s.size : s;
+            const szStock = (p.sizeStock && typeof p.sizeStock === 'object') ? Number(p.sizeStock[szVal]) : null;
+            const isSizeZero = szStock !== null && szStock <= 0;
+            return `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold border ${
+              isSizeZero 
+                ? 'bg-slate-100 text-slate-400 line-through border-slate-200 opacity-60' 
+                : 'bg-[#FAF7F2] text-slate-800 border-[#C3A36D]/30'
+            }">${szVal}</span>`;
+          }).join('')}
+        </div>`;
+      }
+
+      card.innerHTML = `
+        <div class="relative w-full aspect-[3/4] bg-[#FAF8F5] overflow-hidden cursor-pointer" onclick="${isOut ? '' : `directBuy('${p.id}')`}">
+          <img src="${optImg(p.imageUrl || LOGO_PLACEHOLDER, 400)}" alt="${p.name || 'Product'}" class="w-full h-full object-cover object-top ${isOut ? 'opacity-60' : 'group-hover:scale-105'} transition-transform duration-300" loading="lazy">
+          <div class="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
+            ${badgesHtml}
+          </div>
+        </div>
+
+        <div class="p-3 flex flex-col justify-between flex-1 bg-white space-y-2">
+          <div>
+            <span class="text-[9px] font-bold text-[#A68853] uppercase tracking-wider block truncate">${p.category || 'Apparel'}</span>
+            <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate hover:text-[#A9874C] cursor-pointer" onclick="${isOut ? '' : `directBuy('${p.id}')`}">${p.name || 'NEXFIT Item'}</h3>
+            ${sizesHtml}
+          </div>
+
+          <div class="pt-2 border-t border-[#C3A36D]/20">
+            <div class="flex items-baseline justify-between gap-1 mb-2">
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-xs sm:text-sm font-black text-slate-900 font-brand">Tk ${p.discountPrice || p.regularPrice || 0}</span>
+                ${hasDiscount ? `<span class="text-[10px] text-slate-400 font-semibold line-through">Tk ${p.regularPrice}</span>` : ''}
+              </div>
+              ${isOut 
+                ? `<span class="text-[10px] font-bold text-rose-600">Stock Out</span>`
+                : `<span class="text-[9px] font-bold text-[#8E6E37]">Stock: ${totalStock}</span>`
+              }
+            </div>
+
+            ${isOut ? `
+              <button disabled class="w-full bg-slate-100 text-slate-400 text-[11px] font-bold py-2 rounded-xl cursor-not-allowed">Stock Out</button>
+            ` : `
+              <div class="flex items-center gap-1.5">
+                <button onclick="quickAdd('${p.id}')" title="Add to Bag" class="w-9 h-9 bg-[#FAF7F2] hover:bg-slate-200 text-slate-900 rounded-xl transition active:scale-95 flex items-center justify-center shrink-0 border border-[#C3A36D]/30">
+                  <i data-lucide="shopping-bag" class="w-4 h-4 text-[#A9874C]"></i>
+                </button>
+                <button onclick="directBuy('${p.id}')" class="flex-1 gold-glow-btn text-[11px] font-black py-2 rounded-xl transition active:scale-95 flex items-center justify-center gap-1">
+                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                  <span>Order Now</span>
+                </button>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    // New Arrivals Centered Slider
+    function renderNewArrivalsSlider() {
+      const sliderWrapper = document.getElementById('newArrivalsSliderWrapper');
+      if (!sliderWrapper) return;
+      sliderWrapper.innerHTML = '';
+
+      if (allProducts.length === 0) return;
+
+      const newItems = allProducts.slice(0, 10);
+      newItems.forEach(p => {
+        const slide = document.createElement('div');
+        slide.className = 'swiper-slide !w-52 sm:!w-64';
+        slide.appendChild(createProductCard(p));
+        sliderWrapper.appendChild(slide);
+      });
+
+      if (newArrivalsSwiper) newArrivalsSwiper.destroy(true, true);
+      newArrivalsSwiper = new Swiper('.myNewArrivalsSwiper', {
+        slidesPerView: 'auto',
+        spaceBetween: 14,
+        centeredSlides: true,
+        loop: newItems.length > 2,
+        autoplay: {
+          delay: 3000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true
+        },
+        speed: 500,
+        navigation: {
+          nextEl: '#newArrNext',
+          prevEl: '#newArrPrev',
+        }
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function buildHomeSections() {
+      const container = document.getElementById('dynamicSectionsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (allProducts.length === 0 || allCategories.length === 0) return;
+
+      allCategories.forEach(cat => {
+        const prods = allProducts.filter(p => p.category === cat.name);
+        if (prods.length === 0) return;
+
+        const sec = document.createElement('div');
+        sec.className = "max-w-7xl mx-auto px-4 sm:px-6 pt-4";
+        sec.innerHTML = `
+          <div class="flex items-center justify-between mb-3.5">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-[#C3A36D] rounded-full"></span>
+              <h2 class="text-base sm:text-xl font-bold tracking-tight text-slate-900 font-brand">${cat.name}</h2>
+            </div>
+            <button onclick="navigateTo('catalog', '${cat.name}')" class="text-xs font-bold text-[#8E6E37] hover:text-[#644D25] transition flex items-center gap-1 group py-1">
+              <span>View All</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4" id="catGrid-${cat.name.replace(/\s+/g, '')}"></div>
+        `;
+        container.appendChild(sec);
+        const grid = sec.querySelector(`#catGrid-${cat.name.replace(/\s+/g, '')}`);
+        if (grid) {
+          prods.slice(0, 10).forEach(p => grid.appendChild(createProductCard(p)));
+        }
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Cart Actions
+    function quickAdd(id) {
+      const p = allProducts.find(x => x.id === id);
+      if (!p) return;
+      const defSize = (p.sizes && p.sizes.length > 0) ? (typeof p.sizes[0] === 'object' ? p.sizes[0].size : p.sizes[0]) : 'Standard';
+      const defColor = (p.colors && p.colors.length > 0) ? p.colors[0] : 'Classic';
+
+      let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+      const exist = cart.find(i => i.id === p.id && i.selectedSize === defSize && i.selectedColor === defColor);
+      if (exist) exist.quantity += 1;
+      else {
+        cart.push({
+          id: p.id,
+          name: p.name || 'NEXFIT Item',
+          price: Number(p.discountPrice || p.regularPrice || 0),
+          regularPrice: Number(p.regularPrice || 0),
+          imageUrl: p.imageUrl || LOGO_PLACEHOLDER,
+          isFreeDelivery: !!p.isFreeDelivery,
+          selectedSize: defSize,
+          selectedColor: defColor,
+          quantity: 1
+        });
+      }
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      updateCartBadge();
+      showStoreToast('Added to bag!');
+    }
+
+    function directBuy(id) {
+      const p = allProducts.find(x => x.id === id);
+      if (p && getProductTotalStock(p) <= 0) {
+        showStoreToast('This product is currently out of stock!');
+        return;
+      }
+      window.location.href = `checkout.html?shop=${encodeURIComponent(currentShop)}&id=${encodeURIComponent(id)}`;
+    }
+
+    function updateCartBadge() {
+      const cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+      const count = cart.reduce((acc, it) => acc + (it.quantity || 1), 0);
+      const headEl = document.getElementById('headerCartBadge');
+      if (headEl) headEl.innerText = count;
+      const botEl = document.getElementById('mobileBottomCartBadge');
+      if (botEl) botEl.innerText = count;
+    }
+
+    // Combo Modal Logic
+    function openComboQuickModal(comboId) {
+      const c = allCampaigns.find(item => item.id === comboId);
+      if (!c) return;
+      activeQuickCombo = c;
+      comboItemSelections = {};
+
+      document.getElementById('modalComboBadge').innerText = c.badge || 'Bundle Deal';
+      document.getElementById('modalComboTitle').innerText = c.title || 'Special Bundle';
+      document.getElementById('modalComboPrice').innerText = `Tk ${Number(c.comboPrice || 0).toLocaleString()}`;
+
+      const freeDelEl = document.getElementById('modalComboFreeDel');
+      if (c.isFreeDelivery) freeDelEl.classList.remove('hidden');
+      else freeDelEl.classList.add('hidden');
+
+      const itemsList = document.getElementById('modalComboItemsList');
+      itemsList.innerHTML = '';
+
+      (c.products || []).forEach((p, index) => {
+        const fullProd = allProducts.find(item => item.id === p.id) || p;
+        const pSizes = fullProd.sizes || [];
+        const pColors = fullProd.colors || [];
+
+        const defaultSize = pSizes.length > 0 ? (typeof pSizes[0] === 'object' ? pSizes[0].size : pSizes[0]) : 'Standard';
+        const defaultColor = pColors.length > 0 ? pColors[0] : 'Default';
+
+        comboItemSelections[index] = {
+          id: p.id,
+          name: p.name || 'Bundle Item',
+          imageUrl: p.imageUrl || LOGO_PLACEHOLDER,
+          selectedSize: defaultSize,
+          selectedColor: defaultColor
+        };
+
+        const row = document.createElement('div');
+        row.className = "flex items-center gap-3 p-2.5 bg-[#FAF8F5] rounded-xl border border-[#C3A36D]/20";
+        row.innerHTML = `
+          <img src="${p.imageUrl || LOGO_PLACEHOLDER}" class="w-10 h-10 rounded-lg object-cover bg-white shrink-0">
+          <div class="flex-1 min-w-0">
+            <h5 class="text-xs font-bold text-slate-900 truncate">${p.name || 'Item'}</h5>
+          </div>
+        `;
+        itemsList.appendChild(row);
+      });
+
+      document.getElementById('comboQuickModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeComboQuickModal() {
+      document.getElementById('comboQuickModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      activeQuickCombo = null;
+    }
+
+    function addComboToCartAction() {
+      if (!activeQuickCombo) return;
+      const c = activeQuickCombo;
+      let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+      cart.push({
+        id: `combo_${c.id}_${Date.now()}`,
+        isCombo: true,
+        comboId: c.id,
+        name: c.title,
+        price: Number(c.comboPrice || 0),
+        regularPrice: Number(c.comboPrice || 0),
+        imageUrl: Object.values(comboItemSelections)[0]?.imageUrl || LOGO_PLACEHOLDER,
+        isFreeDelivery: !!c.isFreeDelivery,
+        quantity: 1
+      });
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      updateCartBadge();
+      closeComboQuickModal();
+      showStoreToast('Combo added to bag!');
+    }
+
+    function buyComboNowAction() {
+      addComboToCartAction();
+      window.location.href = `checkout.html?shop=${encodeURIComponent(currentShop)}&fromCart=true`;
+    }
+
+    // SPA Routing
+    function navigateTo(viewName, param = null, pushHistory = true) {
+      document.querySelectorAll('.spa-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`view-${viewName}`);
+      if (target) {
+        target.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (pushHistory) {
+        window.history.pushState({ view: viewName, param: param }, '', `#${viewName}${param ? '=' + encodeURIComponent(param) : ''}`);
+      }
+
+      if (viewName === 'catalog') {
+        const titleEl = document.getElementById('catalogViewTitle');
+        const subEl = document.getElementById('catalogViewSubtitle');
+        const grid = document.getElementById('catalogProductGrid');
+        titleEl.innerText = param || 'All Items';
+        let list = allProducts;
+        if (param && param !== 'All Products' && param !== 'New Arrivals') {
+          list = allProducts.filter(p => p.category === param);
+        }
+        subEl.innerText = `Showing ${list.length} available items`;
+        grid.innerHTML = '';
+        list.forEach(p => grid.appendChild(createProductCard(p)));
+      } else if (viewName === 'search') {
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        handleSearch('');
+        setTimeout(() => input.focus(), 100);
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    window.onpopstate = function (event) {
+      if (event.state && event.state.view) {
+        navigateTo(event.state.view, event.state.param, false);
+      } else {
+        navigateTo('home', null, false);
+      }
+    };
+
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        navigateTo('home', null, false);
+      }
+    }
+
+    function handleSearchInput(e) {
+      const q = e.target.value;
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) {
+        if (q.trim().length > 0) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+      handleSearch(q);
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      if (!input) return;
+      input.value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      handleSearch('');
+      input.focus();
+    }
+
+    function handleSearch(keyword) {
+      const clean = keyword.trim().toLowerCase();
+      let matched = allProducts;
+      if (clean !== '') {
+        matched = allProducts.filter(p => (p.name && p.name.toLowerCase().includes(clean)) || (p.category && p.category.toLowerCase().includes(clean)));
+      }
+      document.getElementById('searchResultSummary').innerText = clean === '' ? 'All Products' : `Results for "${keyword}"`;
+      document.getElementById('searchResultCount').innerText = `${matched.length} items`;
+      const grid = document.getElementById('searchProductGrid');
+      grid.innerHTML = '';
+      matched.forEach(p => grid.appendChild(createProductCard(p)));
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('sideMenu');
+      const backdrop = document.getElementById('sideMenuBackdrop');
+      const isOpen = !menu.classList.contains('-translate-x-full');
+      if (isOpen) {
+        menu.classList.add('-translate-x-full');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = '';
+      } else {
+        menu.classList.remove('-translate-x-full');
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function openTrackOrderModal() {
+      const phone = prompt("Enter your phone number to track order:");
+      if (phone && phone.trim()) {
+        window.location.href = `track-order.html?shop=${encodeURIComponent(currentShop)}&phone=${encodeURIComponent(phone.trim())}`;
+      }
+    }
+
+    // Run Cache load on instant DOM render
+    loadFromCacheInitial();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCartBadge();
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
