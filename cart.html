@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="cartPageTitle">NEXTFIT | Shopping Bag</title>
+  
+  <link id="pageFavicon" rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg">
+  
+  <!-- Fast Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- 100% PURE LIGHTWEIGHT VANILLA CSS (NO TAILWIND RUNTIME) -->
+  <style>
+    :root {
+      --brand-gold: #C3A36D;
+      --brand-gold-dark: #A88954;
+      --brand-gold-light: #F7F3EB;
+      --bg-main: #FAF8F5;
+      --bg-surface: #FDFBF7;
+      --border-color: #F4EFE6;
+      --text-main: #333333;
+      --text-muted: #777777;
+      --text-subtle: #999999;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --font-sans: 'Inter', sans-serif;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'Space Grotesk', monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      -webkit-tap-highlight-color: transparent;
+      letter-spacing: -0.01em;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, h2, h3, h4, .font-display {
+      font-family: var(--font-display);
+    }
+    .font-mono {
+      font-family: var(--font-mono);
+    }
+
+    /* Header */
+    .cart-header {
+      background: rgba(250, 248, 245, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .cart-header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-icon-back {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: var(--brand-gold);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-icon-back:active {
+      transform: scale(0.95);
+      background: var(--bg-surface);
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand-logo-img {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      object-fit: contain;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      padding: 2px;
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.18em;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+    }
+    .cart-count-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--brand-gold);
+      color: #ffffff;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .btn-clear-cart {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-subtle);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-clear-cart:hover {
+      background: #ffffff;
+      border-color: var(--border-color);
+      color: #dc2626;
+    }
+
+    /* Main Container */
+    .cart-main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 90px;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Skeleton Loader */
+    .skeleton-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .skeleton-box {
+      background: var(--brand-gold-light);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .skeleton-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Empty State */
+    .cart-empty-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 48px 24px;
+      text-align: center;
+      max-width: 380px;
+      margin: 40px auto 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+    }
+    .empty-icon-circle {
+      width: 64px;
+      height: 64px;
+      background: var(--brand-gold-light);
+      color: var(--brand-gold);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .cart-empty-box h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .cart-empty-box p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .btn-start-shopping {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brand-gold);
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-start-shopping:hover {
+      background: var(--brand-gold-dark);
+    }
+    .btn-start-shopping:active {
+      transform: scale(0.96);
+    }
+
+    /* Filled Cart Grid */
+    .cart-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (min-width: 768px) {
+      .cart-grid {
+        grid-template-columns: 1.35fr 1fr;
+      }
+    }
+
+    /* Cart Items List */
+    .cart-items-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .cart-item-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: border-color 0.2s ease;
+    }
+    .cart-item-card:hover {
+      border-color: var(--brand-gold);
+    }
+    .item-flex-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .item-thumb-img {
+      width: 74px;
+      height: 74px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+      .item-thumb-img {
+        width: 84px;
+        height: 84px;
+      }
+    }
+    .item-details {
+      flex: 1;
+      min-width: 0;
+    }
+    .item-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .item-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-item-remove {
+      background: transparent;
+      border: none;
+      color: var(--text-subtle);
+      cursor: pointer;
+      padding: 2px;
+      transition: color 0.2s;
+    }
+    .btn-item-remove:hover {
+      color: #dc2626;
+    }
+    .item-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .item-price-now {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--brand-gold);
+    }
+    .item-price-old {
+      font-size: 11px;
+      color: var(--text-subtle);
+      text-decoration: line-through;
+    }
+
+    /* Variation Selectors */
+    .item-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .chip-select-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 3px 8px;
+    }
+    .chip-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+    }
+    .chip-dropdown {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-gold);
+      background: transparent;
+      border: none;
+      outline: none;
+      cursor: pointer;
+    }
+    .chip-static {
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--brand-gold-light);
+      border: 1px solid var(--border-color);
+      color: var(--brand-gold);
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Bundle Items Display */
+    .bundle-badge {
+      display: inline-block;
+      background: var(--brand-gold);
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+    .bundle-subitems-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .bundle-subitem-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #555555;
+      background: var(--bg-surface);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+    .bundle-subitem-spec {
+      color: var(--brand-gold);
+      font-weight: 700;
+    }
+
+    /* Item Bottom Row (Qty & Subtotal) */
+    .item-bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+    }
+    .qty-counter {
+      display: inline-flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+    .qty-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--brand-gold);
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .qty-btn:hover {
+      background: var(--bg-surface);
+    }
+    .qty-btn:active {
+      transform: scale(0.92);
+    }
+    .qty-display {
+      width: 28px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      user-select: none;
+    }
+    .item-line-total {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--brand-gold);
+    }
+
+    /* Order Summary Card */
+    .summary-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+      position: sticky;
+      top: 90px;
+    }
+    .summary-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .summary-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--brand-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .summary-count {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+    }
+    .summary-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+    .summary-row-bold {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .free-del-badge-card {
+      background: var(--brand-gold-light);
+      border: 1px solid rgba(195, 163, 109, 0.4);
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .summary-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 14px 0;
+    }
+    .summary-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .summary-total-price {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--brand-gold);
+    }
+    .summary-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .btn-checkout {
+      width: 100%;
+      background: var(--brand-gold);
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-checkout:hover {
+      background: var(--brand-gold-dark);
+    }
+    .btn-checkout:active {
+      transform: scale(0.99);
+    }
+    .btn-continue-shop {
+      width: 100%;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 11px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-continue-shop:hover {
+      background: #ffffff;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="cart-header">
+    <div class="cart-header-inner">
+      <div class="header-left">
+        <button onclick="handleBackNavigation()" class="btn-icon-back" aria-label="Go Back">
+          <i data-lucide="arrow-left" style="width: 17px; height: 17px;"></i>
+        </button>
+        <a id="cartBrandLink" href="index.html" class="brand-link">
+          <img id="cartHeaderLogo" src="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg" alt="Logo" class="brand-logo-img">
+          <span id="cartStoreTitle" class="brand-title">NEXTFIT</span>
+          <span id="cartCountHeader" class="cart-count-badge">0</span>
+        </a>
+      </div>
+
+      <button id="clearCartBtn" onclick="clearCart()" class="btn-clear-cart">
+        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+        <span>Empty Bag</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="cart-main">
+    
+    <!-- Ultra Light Skeleton Loader -->
+    <div id="cartSkeleton" class="skeleton-wrap">
+      <div class="skeleton-box" style="height: 96px;"></div>
+      <div class="skeleton-box" style="height: 96px;"></div>
+      <div class="skeleton-box" style="height: 150px; margin-top: 10px;"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="cartEmptyState" class="cart-empty-box hidden">
+      <div class="empty-icon-circle">
+        <i data-lucide="shopping-bag" style="width: 28px; height: 28px;"></i>
+      </div>
+      <h3 class="font-display">আপনার ব্যাগ খালি</h3>
+      <p>Your shopping bag is currently empty.</p>
+      <button onclick="handleBackNavigation()" class="btn-start-shopping font-display">
+        <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i>
+        <span>Start Shopping</span>
+      </button>
+    </div>
+
+    <!-- Filled Bag Grid -->
+    <div id="cartContent" class="cart-grid hidden">
+      
+      <!-- Items List -->
+      <div class="cart-items-container" id="cartItemsList"></div>
+
+      <!-- Order Summary Card -->
+      <div class="summary-card">
+        <div class="summary-header">
+          <h2 class="summary-title font-display">অর্ডার বিবরণী</h2>
+          <span class="summary-count font-mono" id="summaryTotalItems">0 items</span>
+        </div>
+
+        <div class="summary-rows">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span class="summary-row-bold font-mono" id="subtotalPrice">BDT 0</span>
+          </div>
+          
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span style="font-size: 11px; color: var(--text-subtle);" id="deliveryFeeNotice">Calculated at checkout</span>
+          </div>
+
+          <div id="freeDeliveryNoticeWrap" class="free-del-badge-card hidden">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+            <span>Free delivery applicable on this order</span>
+          </div>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-total-row">
+          <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Estimated Total</span>
+          <span class="summary-total-price font-mono" id="grandTotalPrice">BDT 0</span>
+        </div>
+
+        <div class="summary-actions">
+          <button onclick="proceedToCheckout()" class="btn-checkout font-display">
+            <span>Proceed to Checkout</span>
+            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+          </button>
+
+          <button onclick="handleBackNavigation()" class="btn-continue-shop">
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let LOGO_PLACEHOLDER = "https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentShop = urlParams.get('shop') || 'nextfit';
+    const CART_STORAGE_KEY = `cart_${currentShop}`;
+
+    const homeShopUrl = `index.html?shop=${encodeURIComponent(currentShop)}`;
+    const brandLink = document.getElementById('cartBrandLink');
+    if (brandLink) brandLink.href = homeShopUrl;
+
+    function handleBackNavigation() {
+      if (document.referrer && window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = homeShopUrl;
+      }
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2txpRBwRAtKisXlsslm2BosSJ3rxrXQg",
+      authDomain: "tiodisk-d97c1.firebaseapp.com",
+      databaseURL: "https://tiodisk-d97c1-default-rtdb.firebaseio.com",
+      projectId: "tiodisk-d97c1",
+      storageBucket: "tiodisk-d97c1.firebasestorage.app",
+      messagingSenderId: "874244971549",
+      appId: "1:874244971549:web:7bf9532a6b6dcb1f8bbaf4"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    db.ref(`stores/${currentShop}/settings`).on('value', snap => {
+      const s = snap.val();
+      if (!s) return;
+
+      const storeName = s.storeName || 'NEXTFIT';
+      document.title = `${storeName} | Shopping Bag`;
+      document.getElementById('cartStoreTitle').innerText = storeName;
+
+      if (s.logo) {
+        LOGO_PLACEHOLDER = s.logo;
+        document.getElementById('cartHeaderLogo').src = s.logo;
+        document.getElementById('pageFavicon').href = s.logo;
+      }
+    });
+
+    let cart = [];
+
+    function loadCart() {
+      cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+      
+      if (cart.length > 0) {
+        db.ref(`stores/${currentShop}/products`).once('value', snap => {
+          const prods = snap.val() || {};
+          let hasUpdates = false;
+
+          cart.forEach(item => {
+            if (!item.isCombo && item.id && prods[item.id]) {
+              const p = prods[item.id];
+              if (p.sizes && (!item.availableSizes || item.availableSizes.length === 0)) {
+                item.availableSizes = p.sizes;
+                hasUpdates = true;
+              }
+              if (p.colors && (!item.availableColors || item.availableColors.length === 0)) {
+                item.availableColors = p.colors;
+                hasUpdates = true;
+              }
+              if (p.colorImages) item.colorImages = p.colorImages;
+              if (p.sizeStock) item.sizeStock = p.sizeStock;
+            }
+          });
+
+          if (hasUpdates) {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+          }
+
+          document.getElementById('cartSkeleton').style.display = 'none';
+          renderCart();
+        }).catch(() => {
+          document.getElementById('cartSkeleton').style.display = 'none';
+          renderCart();
+        });
+      } else {
+        document.getElementById('cartSkeleton').style.display = 'none';
+        renderCart();
+      }
+    }
+
+    function updateCartItemSize(index, newSize) {
+      if (!cart[index]) return;
+      const item = cart[index];
+
+      if (item.sizeStock && typeof item.sizeStock === 'object') {
+        const availableStock = Number(item.sizeStock[newSize]) || 0;
+        
+        if (availableStock <= 0) {
+          alert(`দুঃখিত, '${newSize}' সাইজটি বর্তমানে স্টকে নেই!`);
+          renderCart();
+          return;
+        }
+
+        if (Number(item.quantity) > availableStock) {
+          item.quantity = availableStock;
+          alert(`এই সাইজের সর্বোচ্চ ${availableStock} টি স্টক আছে, তাই পরিমাণ সামঞ্জস্য করা হলো।`);
+        }
+      }
+
+      item.selectedSize = newSize;
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      renderCart();
+    }
+
+    function updateCartItemColor(index, newColor) {
+      if (!cart[index]) return;
+      const item = cart[index];
+      item.selectedColor = newColor;
+
+      if (item.colorImages && item.colorImages[newColor] && item.colorImages[newColor].length > 0) {
+        item.imageUrl = item.colorImages[newColor][0];
+      }
+
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      renderCart();
+    }
+
+    function renderCart() {
+      const emptyState = document.getElementById('cartEmptyState');
+      const content = document.getElementById('cartContent');
+      const list = document.getElementById('cartItemsList');
+      const headerCount = document.getElementById('cartCountHeader');
+      const summaryItems = document.getElementById('summaryTotalItems');
+      const clearBtn = document.getElementById('clearCartBtn');
+
+      const totalItems = cart.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+      if (headerCount) headerCount.innerText = totalItems;
+      if (summaryItems) summaryItems.innerText = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
+
+      if (cart.length === 0) {
+        emptyState.classList.remove('hidden');
+        content.classList.add('hidden');
+        if (clearBtn) clearBtn.classList.add('hidden');
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      content.classList.remove('hidden');
+      if (clearBtn) clearBtn.classList.remove('hidden');
+      list.innerHTML = '';
+
+      let subtotal = 0;
+      let allItemsFreeDelivery = cart.length > 0 && cart.every(it => it.isFreeDelivery);
+
+      cart.forEach((item, index) => {
+        const itemPrice = Number(item.price) || 0;
+        const itemQty = Number(item.quantity) || 1;
+        subtotal += itemPrice * itemQty;
+
+        const cardEl = document.createElement('div');
+        cardEl.className = "cart-item-card";
+
+        if (item.isCombo) {
+          const bundleDetails = (item.bundledProducts || []).map(b => `
+            <div class="bundle-subitem-row">
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">• ${b.name}</span>
+              <span class="bundle-subitem-spec font-mono">(${b.selectedSize || 'Standard'}${b.selectedColor ? `, ${b.selectedColor}` : ''})</span>
+            </div>
+          `).join('');
+
+          cardEl.innerHTML = `
+            <div class="item-flex-row">
+              <img 
+                src="${item.imageUrl || LOGO_PLACEHOLDER}" 
+                alt="${item.name}" 
+                class="item-thumb-img"
+                onerror="this.src='${LOGO_PLACEHOLDER}'"
+              >
+              <div class="item-details">
+                <div class="item-top-row">
+                  <div>
+                    <span class="bundle-badge">Bundle Deal</span>
+                    <h4 class="item-title font-display">${item.name}</h4>
+                  </div>
+                  <button onclick="removeItem(${index})" class="btn-item-remove" title="Remove">
+                    <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                  </button>
+                </div>
+                
+                <div class="item-price-row">
+                  <span class="item-price-now font-mono">BDT ${itemPrice}</span>
+                </div>
+
+                <div class="bundle-subitems-wrap">
+                  ${bundleDetails}
+                </div>
+
+                <div class="item-bottom-row">
+                  <div class="qty-counter">
+                    <button onclick="changeQty(${index}, -1)" class="qty-btn">-</button>
+                    <span class="qty-display font-mono">${itemQty}</span>
+                    <button onclick="changeQty(${index}, 1)" class="qty-btn">+</button>
+                  </div>
+                  <span class="item-line-total font-mono">BDT ${itemPrice * itemQty}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          cardEl.innerHTML = `
+            <div class="item-flex-row">
+              <img 
+                src="${item.imageUrl || LOGO_PLACEHOLDER}" 
+                alt="${item.name}" 
+                class="item-thumb-img"
+                onerror="this.src='${LOGO_PLACEHOLDER}'"
+              >
+              <div class="item-details">
+                <div class="item-top-row">
+                  <h4 class="item-title font-display">${item.name}</h4>
+                  <button onclick="removeItem(${index})" class="btn-item-remove" title="Remove">
+                    <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                  </button>
+                </div>
+                
+                <div class="item-price-row">
+                  <span class="item-price-now font-mono">BDT ${itemPrice}</span>
+                  ${item.regularPrice && Number(item.regularPrice) > itemPrice ? `<span class="item-price-old font-mono">BDT ${item.regularPrice}</span>` : ''}
+                </div>
+                
+                <div class="item-chips-wrap">
+                  ${item.availableSizes && item.availableSizes.length > 0 ? `
+                    <div class="chip-select-box">
+                      <span class="chip-label">Size:</span>
+                      <select onchange="updateCartItemSize(${index}, this.value)" class="chip-dropdown">
+                        ${item.availableSizes.map(s => {
+                          const sVal = typeof s === 'object' ? s.size : s;
+                          const szStock = (item.sizeStock && typeof item.sizeStock === 'object' && item.sizeStock[sVal] !== undefined) ? Number(item.sizeStock[sVal]) : null;
+                          const isOut = szStock !== null && szStock <= 0;
+                          return `<option value="${sVal}" ${sVal === item.selectedSize ? 'selected' : ''} ${isOut ? 'disabled' : ''}>${sVal} ${isOut ? '(Out)' : ''}</option>`;
+                        }).join('')}
+                      </select>
+                    </div>
+                  ` : (item.selectedSize ? `<span class="chip-static">Size: ${item.selectedSize}</span>` : '')}
+
+                  ${item.availableColors && item.availableColors.length > 0 ? `
+                    <div class="chip-select-box">
+                      <span class="chip-label">Color:</span>
+                      <select onchange="updateCartItemColor(${index}, this.value)" class="chip-dropdown">
+                        ${item.availableColors.map(c => `<option value="${c}" ${c === item.selectedColor ? 'selected' : ''}>${c}</option>`).join('')}
+                      </select>
+                    </div>
+                  ` : (item.selectedColor ? `<span class="chip-static">Color: ${item.selectedColor}</span>` : '')}
+                </div>
+
+                <div class="item-bottom-row">
+                  <div class="qty-counter">
+                    <button onclick="changeQty(${index}, -1)" class="qty-btn">-</button>
+                    <span class="qty-display font-mono">${itemQty}</span>
+                    <button onclick="changeQty(${index}, 1)" class="qty-btn">+</button>
+                  </div>
+                  <span class="item-line-total font-mono">BDT ${itemPrice * itemQty}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        list.appendChild(cardEl);
+      });
+
+      document.getElementById('subtotalPrice').innerText = `BDT ${subtotal}`;
+      document.getElementById('grandTotalPrice').innerText = `BDT ${subtotal}`;
+
+      const freeDelBanner = document.getElementById('freeDeliveryNoticeWrap');
+      const delNotice = document.getElementById('deliveryFeeNotice');
+      if (allItemsFreeDelivery) {
+        freeDelBanner.classList.remove('hidden');
+        delNotice.innerHTML = `<span style="color: var(--brand-gold); font-weight: 700;">Free</span>`;
+      } else {
+        freeDelBanner.classList.add('hidden');
+        delNotice.innerText = `Calculated at checkout`;
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function changeQty(index, delta) {
+      const item = cart[index];
+      let maxStock = 999;
+
+      if (!item.isCombo && item.sizeStock && item.selectedSize && typeof item.sizeStock === 'object') {
+        maxStock = Number(item.sizeStock[item.selectedSize]) || 0;
+      }
+
+      const currentQty = Number(item.quantity) || 1;
+
+      if (delta > 0 && currentQty >= maxStock) {
+        alert(`এই সাইজের সর্বোচ্চ ${maxStock} টি স্টক এভেইলেবল আছে।`);
+        return;
+      }
+
+      item.quantity = currentQty + delta;
+      if (item.quantity <= 0) {
+        cart.splice(index, 1);
+      }
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      renderCart();
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      localStorage.removeItem(CART_STORAGE_KEY);
+      renderCart();
+    }
+
+    function proceedToCheckout() {
+      if (cart.length === 0) return;
+      window.location.href = `checkout.html?fromCart=true&shop=${encodeURIComponent(currentShop)}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+      loadCart();
+    });
+  </script>
+</body>
+</html>
