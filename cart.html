@@ -300,21 +300,27 @@
     .item-details {
       flex: 1;
       min-width: 0;
+      width: 100%;
+      overflow: hidden;
     }
     .item-top-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 8px;
+      gap: 10px;
+      width: 100%;
     }
     .item-title {
       font-size: 13px;
       font-weight: 700;
       color: var(--text-main);
       line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
+      word-break: break-word;
       text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .btn-item-remove {
       background: transparent;
@@ -403,23 +409,54 @@
     .bundle-subitems-wrap {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       margin-top: 8px;
+      width: 100%;
     }
     .bundle-subitem-row {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: #555555;
+      gap: 8px;
       background: var(--bg-surface);
-      padding: 3px 8px;
-      border-radius: 6px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .bundle-subitem-img {
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    .bundle-subitem-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .bundle-subitem-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      width: 100%;
     }
     .bundle-subitem-spec {
-      color: var(--brand-gold);
+      font-size: 10px;
       font-weight: 700;
+      color: var(--brand-gold);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* Item Bottom Row (Qty & Subtotal) */
@@ -752,10 +789,16 @@
     let cart = [];
 
     function loadCart() {
+      // লোকাল স্টোরেজ থেকে সাথে সাথে কার্ট নিয়ে সাথে সাথে স্ক্রিনে দেখানো (নো ডিলে)
       cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
       
+      const skeleton = document.getElementById('cartSkeleton');
+      if (skeleton) skeleton.style.display = 'none';
+      renderCart();
+
+      // ব্যাকগ্রাউন্ডে প্রোডাক্টের সাইজ ও স্টকের তথ্য আপডেট হবে, ইউজারকে আটকে রাখবে না
       if (cart.length > 0) {
-        db.ref(`stores/${currentShop}/products`).once('value', snap => {
+        db.ref(`stores/${currentShop}/products`).once('value').then(snap => {
           const prods = snap.val() || {};
           let hasUpdates = false;
 
@@ -777,17 +820,9 @@
 
           if (hasUpdates) {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            renderCart();
           }
-
-          document.getElementById('cartSkeleton').style.display = 'none';
-          renderCart();
-        }).catch(() => {
-          document.getElementById('cartSkeleton').style.display = 'none';
-          renderCart();
-        });
-      } else {
-        document.getElementById('cartSkeleton').style.display = 'none';
-        renderCart();
+        }).catch(() => {});
       }
     }
 
@@ -865,28 +900,29 @@
         cardEl.className = "cart-item-card";
 
         if (item.isCombo) {
-          const bundleDetails = (item.bundledProducts || []).map(b => `
+          // বান্ডেলের প্রতিটি প্রডাক্টের তালিকা নেওয়া
+          const bundleList = item.bundleItems || item.bundledProducts || [];
+
+          // প্রতিটি প্রডাক্টের নিজস্ব ছবি, টাইটেল ও সাইজ সহ রো তৈরি
+          const bundleDetails = bundleList.map(b => `
             <div class="bundle-subitem-row">
-              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">• ${b.name}</span>
-              <span class="bundle-subitem-spec font-mono">(${b.selectedSize || 'Standard'}${b.selectedColor ? `, ${b.selectedColor}` : ''})</span>
+              <img src="${b.imageUrl || LOGO_PLACEHOLDER}" alt="${b.name}" class="bundle-subitem-img" onerror="this.src='${LOGO_PLACEHOLDER}'">
+              <div class="bundle-subitem-text">
+                <span class="bundle-subitem-name" title="${b.name}">${b.name}</span>
+                <span class="bundle-subitem-spec">${b.selectedSize ? 'Size: ' + b.selectedSize : ''}${b.selectedColor ? ' | ' + b.selectedColor : ''}</span>
+              </div>
             </div>
           `).join('');
 
           cardEl.innerHTML = `
             <div class="item-flex-row">
-              <img 
-                src="${item.imageUrl || LOGO_PLACEHOLDER}" 
-                alt="${item.name}" 
-                class="item-thumb-img"
-                onerror="this.src='${LOGO_PLACEHOLDER}'"
-              >
-              <div class="item-details">
+              <div class="item-details" style="width: 100%;">
                 <div class="item-top-row">
-                  <div>
-                    <span class="bundle-badge">Bundle Deal</span>
-                    <h4 class="item-title font-display">${item.name}</h4>
+                  <div style="min-width: 0; flex: 1;">
+                    <span class="bundle-badge">Combo Bundle</span>
+                    <h4 class="item-title font-display" title="${item.name}">${item.name}</h4>
                   </div>
-                  <button onclick="removeItem(${index})" class="btn-item-remove" title="Remove">
+                  <button onclick="removeItem(${index})" class="btn-item-remove" title="Remove" style="margin-left: 8px;">
                     <i data-lucide="x" style="width: 16px; height: 16px;"></i>
                   </button>
                 </div>
@@ -895,6 +931,7 @@
                   <span class="item-price-now font-mono">BDT ${itemPrice}</span>
                 </div>
 
+                <!-- বান্ডেলের সব কয়টি পণ্যের আলাদা ছবি ও বিবরণী -->
                 <div class="bundle-subitems-wrap">
                   ${bundleDetails}
                 </div>
