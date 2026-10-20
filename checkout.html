@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="checkoutPageTitle">NEXTFIT | Checkout</title>
+  
+  <link id="pageFavicon" rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg">
+  
+  <meta property="og:type" content="website">
+  <meta property="og:title" id="ogTitle" content="NEXTFIT | Secure Checkout">
+  <meta property="og:description" id="ogDescription" content="Order online with Express Home Delivery.">
+  <meta property="og:image" id="ogImage" content="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_1200/v1790157763/sg21me7bxibskidr5ivo.jpg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://res.cloudinary.com">
+  <link rel="preconnect" href="https://tiodisk-d97c1-default-rtdb.firebaseio.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Firebase & Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandGold: '#D4AF37',
+            brandGoldDark: '#B38B21',
+            brandGoldLight: '#FDFBF7',
+            warmBase: '#FAF8F5',
+            warmBorder: '#EFE9DE'
+          },
+          fontFamily: {
+            sans: ['"Outfit"', '"Hind Siliguri"', 'sans-serif'],
+            bengali: ['"Hind Siliguri"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { 
+      background: radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FAF7F2 100%);
+      color: #1E293B;
+      font-family: 'Outfit', 'Hind Siliguri', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .field-clean-input {
+      background-color: #FFFFFF;
+      border: 1.5px solid #E2D9CC;
+      color: #0F172A;
+      transition: border-color 0.15s ease;
+    }
+    .field-clean-input:focus {
+      border-color: #B38B21 !important;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
+      outline: none !important;
+    }
+
+    .gold-shimmer {
+      background: linear-gradient(135deg, #1A1A1A 0%, #2A241A 50%, #1A1A1A 100%);
+    }
+
+    /* শতভাগ নিশ্চিত ভিজিবল গেটওয়ে পপআপ */
+    .gateway-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 99999999 !important;
+      background: rgba(15, 23, 42, 0.85) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      overflow-y: auto !important;
+      padding: 16px !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .gateway-backdrop.show-modal {
+      display: flex !important;
+    }
+
+    .gateway-card {
+      width: 100%;
+      max-width: 390px;
+      background: #FFFFFF;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalFadeIn {
+      from { transform: scale(0.92) translateY(20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .swal2-container { z-index: 10000000 !important; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased bg-[#FAF8F5]">
+
+  <div id="mainCheckoutShell" class="flex flex-col min-h-screen">
+    
+    <!-- Top Header -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-[#EFE9DE] sticky top-0 z-40 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)]">
+      <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+        <button onclick="handleSmartBack()" class="w-10 h-10 rounded-xl border border-warmBorder bg-[#FCFAF6] flex items-center justify-center text-slate-700 hover:bg-slate-100 transition active:scale-95" aria-label="Go Back">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        
+        <a id="headerHomeLink" href="index.html" class="flex items-center gap-2.5">
+          <img id="headerLogo" src="https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg" alt="Logo" class="w-8 h-8 rounded-lg object-contain border border-[#E8DFC9] bg-white p-0.5">
+          <span id="headerStoreName" class="font-extrabold text-base tracking-wider text-slate-900 uppercase">NEXTFIT</span>
+        </a>
+
+        <div class="w-10"></div>
+      </div>
+    </header>
+
+    <!-- CHECKOUT MAIN CONTENT (Direct & Instant) -->
+    <main id="screen-checkout" class="flex-1 max-w-xl mx-auto w-full px-4 py-8 space-y-6">
+      
+      <!-- STEP 1: DELIVERY DETAILS -->
+      <div class="bg-white border border-[#EAE3D2] rounded-3xl p-6 shadow-[0_6px_25px_-4px_rgba(0,0,0,0.03)] space-y-5">
+        <div class="flex items-center gap-2.5 border-b border-[#F2EDE4] pb-3.5">
+          <div class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold font-mono shadow-sm">1</div>
+          <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide font-bengali">ডেলিভারি ঠিকানা ও তথ্য</h2>
+        </div>
+
+        <div class="space-y-4 font-bengali">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">আপনার নাম <span class="text-rose-500">*</span></label>
+            <input type="text" id="custName" class="w-full field-clean-input rounded-xl p-3.5 text-xs font-semibold" autocomplete="name" placeholder="আপনার পুরো নাম লিখুন">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">মোবাইল নম্বর <span class="text-rose-500">*</span></label>
+            <input type="tel" id="custPhone" class="w-full field-clean-input rounded-xl p-3.5 text-xs font-mono font-bold" autocomplete="tel" placeholder="01XXXXXXXXX">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">জেলা নির্বাচন করুন <span class="text-rose-500">*</span></label>
+            <select id="custDistrict" onchange="handleDistrictChange(this.value)" class="w-full field-clean-input rounded-xl p-3.5 text-xs font-semibold cursor-pointer">
+              <option value="">জেলা সিলেক্ট করুন</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">সম্পূর্ণ ঠিকানা (বাসা/রোড/থানা) <span class="text-rose-500">*</span></label>
+            <textarea id="custAddress" oninput="autoDetectDeliveryZone()" rows="2" class="w-full field-clean-input rounded-xl p-3.5 text-xs font-semibold" placeholder="বাসা নং, রোড নং, থানা..."></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-2">ডেলিভারি এলাকা নির্বাচন করুন</label>
+            <div class="grid grid-cols-2 gap-3 select-none">
+              <label class="flex items-center gap-3 p-3.5 border-2 rounded-2xl cursor-pointer has-[:checked]:border-amber-600 has-[:checked]:bg-[#FAF5EA] transition border-[#EAE3D2] bg-white">
+                <input type="radio" name="deliveryZone" value="inside" onchange="updateSummaryPricing()" checked class="accent-amber-600 w-4 h-4 cursor-pointer">
+                <div class="min-w-0">
+                  <span class="font-bold text-slate-900 text-xs block" id="insideZoneLabel">সিটির ভেতরে</span>
+                  <span class="text-amber-800 font-mono text-xs font-bold block mt-0.5" id="insideChargeText">BDT 60</span>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-3 p-3.5 border-2 rounded-2xl cursor-pointer has-[:checked]:border-amber-600 has-[:checked]:bg-[#FAF5EA] transition border-[#EAE3D2] bg-white">
+                <input type="radio" name="deliveryZone" value="outside" onchange="updateSummaryPricing()" class="accent-amber-600 w-4 h-4 cursor-pointer">
+                <div class="min-w-0">
+                  <span class="font-bold text-slate-900 text-xs block" id="outsideZoneLabel">সিটির বাইরে</span>
+                  <span class="text-amber-800 font-mono text-xs font-bold block mt-0.5" id="outsideChargeText">BDT 130</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">অর্ডার নোট (ঐচ্ছিক)</label>
+            <input type="text" id="custOrderNote" class="w-full field-clean-input rounded-xl p-3 text-xs font-semibold" placeholder="প্রয়োজনীয় নির্দেশনা থাকলে লিখুন">
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: PAYMENT METHOD -->
+      <div class="bg-white border border-[#EAE3D2] rounded-3xl p-6 shadow-[0_6px_25px_-4px_rgba(0,0,0,0.03)] space-y-5">
+        <div class="flex items-center gap-2.5 border-b border-[#F2EDE4] pb-3.5">
+          <div class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold font-mono shadow-sm">2</div>
+          <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide font-bengali">পেমেন্ট মেথড</h2>
+        </div>
+
+        <div class="space-y-3" id="paymentOptionsContainer">
+          <div onclick="selectPaymentMode('full')" id="optCard-full" class="p-4 border-2 rounded-2xl cursor-pointer transition flex items-center justify-between border-slate-900 bg-[#FAF7F2]">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-white border border-[#E2D9CC] text-amber-700 flex items-center justify-center shrink-0 shadow-sm">
+                <i data-lucide="credit-card" class="w-5 h-5"></i>
+              </div>
+              <div class="min-w-0 font-bengali">
+                <span class="font-extrabold text-xs text-slate-900 block">সম্পূর্ণ অনলাইন পেমেন্ট</span>
+                <span class="text-[11px] text-slate-500 block">বিকাশ, নগদ বা রকেটের মাধ্যমে সম্পন্ন করুন</span>
+                <span class="text-xs font-black text-slate-900 font-mono block mt-0.5">মোট: <span id="fullPayDisplay">BDT 0</span></span>
+              </div>
+            </div>
+            <div class="w-5 h-5 rounded-full border-2 border-slate-900 flex items-center justify-center shrink-0">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-900"></span>
+            </div>
+          </div>
+
+          <div onclick="selectPaymentMode('advance')" id="optCard-advance" class="hidden p-4 border rounded-2xl cursor-pointer transition flex items-center justify-between border-[#EAE3D2] hover:border-slate-800 bg-white">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-[#FAF8F5] border border-[#E2D9CC] text-amber-700 flex items-center justify-center shrink-0">
+                <i data-lucide="banknote" class="w-5 h-5"></i>
+              </div>
+              <div class="min-w-0 font-bengali">
+                <span class="font-extrabold text-xs text-slate-900 block">শুধু ডেলিভারি চার্জ অগ্রিম</span>
+                <span class="text-[11px] text-slate-500 block">বাকি টাকা প্রোডাক্ট নেওয়ার সময় ক্যাশ অন ডেলিভারি</span>
+                <span class="text-xs font-black text-slate-900 font-mono block mt-0.5">অগ্রিম: <span id="advancePayDisplay">BDT 0</span></span>
+              </div>
+            </div>
+            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0"></div>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <label class="block text-xs font-bold text-slate-600 mb-2.5 font-bengali">পেমেন্ট মাধ্যম বেছে নিন</label>
+          <div class="grid grid-cols-3 gap-3">
+            <button type="button" onclick="selectGatewayChannel('bkash')" id="btnGW-bkash" class="p-3 border-2 border-[#D12053] bg-[#FFF0F4] rounded-2xl flex flex-col items-center justify-center gap-1.5 transition">
+              <img src="https://images.seeklogo.com/logo-png/47/1/bkash-logo-png_seeklogo-471379.png" alt="bKash" class="h-5 object-contain">
+              <span class="text-[11px] font-bold text-slate-900">বিকাশ</span>
+            </button>
+            <button type="button" onclick="selectGatewayChannel('nagad')" id="btnGW-nagad" class="p-3 border border-[#EAE3D2] bg-white rounded-2xl flex flex-col items-center justify-center gap-1.5 transition hover:border-[#F7921E]">
+              <img src="https://old.thefinancialexpress.com.bd/uploads/1585114992.jpg" alt="Nagad" class="h-5 object-contain">
+              <span class="text-[11px] font-bold text-slate-900">নগদ</span>
+            </button>
+            <button type="button" onclick="selectGatewayChannel('rocket')" id="btnGW-rocket" class="p-3 border border-[#EAE3D2] bg-white rounded-2xl flex flex-col items-center justify-center gap-1.5 transition hover:border-[#8C3494]">
+              <div class="w-5 h-5 rounded-md bg-[#8C3494] text-white text-[10px] font-extrabold flex items-center justify-center">R</div>
+              <span class="text-[11px] font-bold text-slate-900">রকেট</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: ORDER SUMMARY -->
+      <div class="bg-white border border-[#EAE3D2] rounded-3xl p-6 shadow-[0_6px_25px_-4px_rgba(0,0,0,0.03)] space-y-5">
+        <div class="flex items-center gap-2.5 border-b border-[#F2EDE4] pb-3.5">
+          <div class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold font-mono shadow-sm">3</div>
+          <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide font-bengali">অর্ডার সামারি</h2>
+        </div>
+
+        <div id="step3ItemsList" class="space-y-2.5 border-b border-[#F2EDE4] pb-4"></div>
+
+        <div class="border-b border-[#F2EDE4] pb-4">
+          <div class="flex gap-2">
+            <input type="text" id="couponInput" placeholder="কুপন কোড থাকলে লিখুন (e.g. SAVE100)" class="flex-1 field-clean-input rounded-xl px-3.5 py-2.5 text-xs uppercase font-mono font-bold outline-none">
+            <button type="button" onclick="applyCouponCode()" id="btnApplyCoupon" class="bg-slate-900 hover:bg-black text-amber-200 px-4 py-2.5 rounded-xl text-xs font-bold font-bengali transition active:scale-95 shrink-0">
+              প্রয়োগ করুন
+            </button>
+          </div>
+          <div id="couponStatusMessage" class="text-[11px] font-bold mt-1.5 hidden font-bengali"></div>
+        </div>
+
+        <div class="space-y-2 text-xs border-b border-[#F2EDE4] pb-4 font-bengali">
+          <div class="flex justify-between text-slate-600">
+            <span>প্রোডাক্ট সাবটোটাল</span>
+            <span class="font-bold text-slate-900 font-mono" id="s3Subtotal">BDT 0</span>
+          </div>
+          <div id="couponDiscountRow" class="hidden justify-between text-emerald-600 font-bold">
+            <span id="couponDiscountLabel">ডিসকাউন্ট কুপন</span>
+            <span class="font-mono" id="s3Discount">- BDT 0</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>ডেলিভারি চার্জ</span>
+            <span class="font-bold text-slate-900 font-mono" id="s3Delivery">BDT 0</span>
+          </div>
+          <div class="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-[#F2EDE4]">
+            <span>এখন প্রদেয় টাকা</span>
+            <span class="font-mono text-lg text-amber-900 font-black" id="s3GrandTotal">BDT 0</span>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="button" onclick="triggerCheckoutProcessing()" id="finalOrderSubmitBtn" class="w-full gold-shimmer hover:opacity-95 text-amber-200 hover:text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 shadow-xl border border-[#C5A880]/30 cursor-pointer">
+            <span class="font-bengali text-base">অর্ডার কনফার্ম করুন</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 text-amber-400"></i>
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- CENTERED PAYMENT GATEWAY MODAL -->
+  <div id="portal-gateway" class="gateway-backdrop" onclick="closeStandalonePortal()">
+    <div class="gateway-card flex flex-col" onclick="event.stopPropagation()">
+      
+      <!-- হেডার -->
+      <div class="bg-white py-3.5 px-5 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <img id="gwBrandLogo" src="https://images.seeklogo.com/logo-png/47/1/bkash-logo-png_seeklogo-471379.png" alt="Gateway" class="h-8 object-contain">
+        </div>
+        <button type="button" onclick="closeStandalonePortal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- মার্চেন্ট ইনফো বার -->
+      <div class="bg-[#F8F9FA] px-5 py-2.5 flex items-center justify-between border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-white border border-slate-300 flex items-center justify-center font-black text-slate-800 text-[10px] shadow-sm">
+            NF
+          </div>
+          <span class="text-xs font-extrabold text-slate-800 tracking-wide uppercase" id="gwStoreName">NEXTFIT</span>
+        </div>
+        <div>
+          <span class="text-base font-black text-slate-900 font-mono" id="portalAmountDisplay">৳ 0</span>
+        </div>
+      </div>
+
+      <!-- গেটওয়ে কালার বডি -->
+      <div id="gwColoredBody" class="bg-[#D12053] text-white p-5 flex flex-col justify-center space-y-4 font-bengali transition-colors duration-200">
+        
+        <div class="text-center">
+          <span class="text-[11px] font-medium text-white/80 block mb-1">এই নম্বরে সেন্ড মানি করুন</span>
+          <div class="inline-flex items-center gap-3 bg-black/25 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 shadow-inner">
+            <span class="text-xl font-black tracking-widest font-mono text-white select-all" id="portalAccountDisplay">01XXXXXXXXX</span>
+            <button type="button" onclick="copyPortalNumber('portalAccountDisplay')" class="bg-white/20 hover:bg-white/30 text-white p-1.5 rounded-lg active:scale-95 transition" title="কপি">
+              <i data-lucide="copy" class="w-4 h-4" id="copyIconState"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-[11px] font-bold text-white text-center" id="gwInputLabel">আপনার বিকাশ নম্বরটি লিখুন</label>
+          <input type="tel" id="portalSenderPhone" class="w-full bg-white text-slate-900 text-center font-mono font-bold text-sm py-2.5 px-3 rounded-xl shadow outline-none focus:ring-2 focus:ring-black/20" placeholder="01XXXXXXXXX">
+        </div>
+
+        <div class="space-y-1">
+          <input type="text" id="portalTrxId" class="w-full bg-white/95 text-slate-900 text-center font-mono font-bold text-xs py-2 px-3 rounded-xl shadow outline-none focus:ring-2 focus:ring-black/20 placeholder:text-slate-400 placeholder:font-bengali" placeholder="ট্রানজেকশন আইডি / TrxID (যদি থাকে)">
+        </div>
+      </div>
+
+      <!-- অ্যাকশন বাটন ফুটার -->
+      <div class="bg-white p-4 border-t border-slate-100 font-bengali shrink-0">
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" onclick="closeStandalonePortal()" class="w-full bg-[#F1F5F9] hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-xs transition active:scale-95">
+            বাতিল
+          </button>
+          <button type="button" onclick="submitFinalVerifiedOrder()" id="portalConfirmBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 shadow">
+            কনফার্ম করুন
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-7 max-w-sm w-full text-center shadow-2xl border border-[#EAE3D2]">
+      <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-200 shadow-inner">
+        <i data-lucide="check-circle" class="w-8 h-8"></i>
+      </div>
+      <h3 class="text-xl font-black text-slate-900 mb-1.5 tracking-tight font-bengali">অর্ডারটি সফল হয়েছে!</h3>
+      <p class="text-xs text-slate-500 leading-relaxed mb-6 font-bengali">
+        ধন্যবাদ! আপনার অর্ডারটি গ্রহণ করা হয়েছে। খুব শীঘ্রই আমরা কল দিয়ে কনফার্ম করব।
+      </p>
+      <a id="successReturnLink" href="index.html" class="inline-flex items-center justify-center gap-2 w-full gold-shimmer text-amber-100 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition active:scale-95 shadow-md font-bengali">
+        <span>আরও কেনাকাটা করুন</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-amber-400"></i>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function refreshIcons() {
+      if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }
+
+    let LOGO_PLACEHOLDER = "https://res.cloudinary.com/dwgvvzbvn/image/upload/f_auto,q_auto,w_200/v1790157763/sg21me7bxibskidr5ivo.jpg";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentShop = urlParams.get('shop') || 'nextfit';
+    const productId = urlParams.get('id');
+    const fromCart = urlParams.get('fromCart') === 'true';
+
+    const CART_STORAGE_KEY = `cart_${currentShop}`;
+    const CACHE_KEY = `store_cache_${currentShop}`;
+    const homeShopUrl = `index.html?shop=${encodeURIComponent(currentShop)}`;
+
+    document.getElementById('headerHomeLink').href = homeShopUrl;
+    document.getElementById('successReturnLink').href = homeShopUrl;
+
+    const BD_DISTRICTS = [
+      "Khulna", "Dhaka", "Chattogram", "Gazipur", "Narayanganj", "Cumilla", "Sylhet", "Rajshahi", "Bogura", 
+      "Barishal", "Mymensingh", "Rangpur", "Dinajpur", "Jashore", "Cox's Bazar", "Brahmanbaria", 
+      "Noakhali", "Feni", "Lakshmipur", "Chandpur", "Habiganj", "Moulvibazar", "Sunamganj", "Narsingdi", 
+      "Munshiganj", "Manikganj", "Tangail", "Kishoreganj", "Netrokona", "Jamalpur", "Sherpur", "Faridpur", 
+      "Gopalganj", "Madaripur", "Shariatpur", "Rajbari", "Pabna", "Sirajganj", "Natore", "Naogaon", 
+      "Chapainawabganj", "Joypurhat", "Gaibandha", "Kurigram", "Lalmonirhat", "Nilphamari", "Thakurgaon", 
+      "Panchagarh", "Kushtia", "Meherpur", "Chuadanga", "Jhenaidah", "Magura", "Narail", "Bagerhat", 
+      "Satkhira", "Bhola", "Patuakhali", "Jhalokathi", "Pirojpur", "Barguna", "Bandarban", "Rangamati", "Khagrachhari"
+    ];
+
+    const distSelect = document.getElementById('custDistrict');
+    BD_DISTRICTS.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.innerText = d;
+      if (d === "Khulna") opt.selected = true;
+      distSelect.appendChild(opt);
+    });
+
+    let storeSettings = {
+      storeName: 'NEXTFIT',
+      logo: LOGO_PLACEHOLDER,
+      phone: '01951149441',
+      delInside: 60,
+      delOutside: 130,
+      insideCityName: 'Khulna',
+      bkash: '',
+      nagad: '',
+      rocket: ''
+    };
+
+    let currentOrderItems = [];
+    let singleProductData = null;
+    let selectedPaymentMode = 'full';
+    let selectedGateway = 'bkash';
+
+    // ১. তাৎক্ষণিক আইটেম লোড (Instant Load from Cart or Instant Item)
+    if (fromCart) {
+      currentOrderItems = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+    } else if (productId) {
+      try {
+        const handed = sessionStorage.getItem('instant_checkout_item');
+        if (handed) {
+          const parsed = JSON.parse(handed);
+          if (parsed && (parsed.id === productId || !parsed.id)) singleProductData = parsed;
+        }
+        if (!singleProductData) {
+          const detailCache = sessionStorage.getItem(`nf_prod_detail_${productId}`);
+          if (detailCache) singleProductData = JSON.parse(detailCache);
+        }
+        if (!singleProductData) {
+          const allCached = localStorage.getItem(`${CACHE_KEY}_products`);
+          if (allCached) {
+            const list = JSON.parse(allCached);
+            singleProductData = list.find(p => p.id === productId);
+          }
+        }
+      } catch(e){}
+
+      if (singleProductData) {
+        currentOrderItems = [{
+          id: productId,
+          name: singleProductData.name || 'NEXFIT Item',
+          price: Number(singleProductData.discountPrice || singleProductData.regularPrice || 0),
+          imageUrl: singleProductData.imageUrl || LOGO_PLACEHOLDER,
+          isFreeDelivery: !!singleProductData.isFreeDelivery,
+          advanceRequired: singleProductData.advanceRequired === true || singleProductData.advanceRequired === 'true',
+          selectedSize: (singleProductData.sizes && singleProductData.sizes.length > 0) ? (typeof singleProductData.sizes[0] === 'object' ? singleProductData.sizes[0].size : singleProductData.sizes[0]) : 'Standard',
+          selectedColor: (singleProductData.colors && singleProductData.colors.length > 0) ? singleProductData.colors[0] : '',
+          quantity: 1
+        }];
+      }
+    }
+
+    // ফায়ারবেস কানেকশন
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2txpRBwRAtKisXlsslm2BosSJ3rxrXQg",
+      authDomain: "tiodisk-d97c1.firebaseapp.com",
+      databaseURL: "https://tiodisk-d97c1-default-rtdb.firebaseio.com",
+      projectId: "tiodisk-d97c1",
+      storageBucket: "tiodisk-d97c1.firebasestorage.app",
+      messagingSenderId: "874244971549",
+      appId: "1:874244971549:web:7bf9532a6b6dcb1f8bbaf4"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    if (firebase.auth) firebase.auth().signInAnonymously().catch(() => {});
+
+    const PATHS = {
+      orders: `stores/${currentShop}/orders`,
+      products: `stores/${currentShop}/products`,
+      coupons: `stores/${currentShop}/coupons`,
+      settings: `stores/${currentShop}/settings`
+    };
+
+    let appliedCoupon = null;
+    let couponDiscountValue = 0;
+
+    // সেটিং সিঙ্ক
+    db.ref(PATHS.settings).on('value', snap => {
+      const s = snap.val();
+      if (s) {
+        applyStoreSettings(s);
+      }
+    });
+
+    // প্রোডাক্ট ব্যাকগ্রাউন্ড লাইভ ফেচ
+    if (productId && (!singleProductData || currentOrderItems.length === 0)) {
+      db.ref(`${PATHS.products}/${productId}`).once('value', snap => {
+        const updated = snap.val();
+        if (updated) {
+          singleProductData = updated;
+          currentOrderItems = [{
+            id: productId,
+            name: updated.name || 'NEXFIT Item',
+            price: Number(updated.discountPrice || updated.regularPrice || 0),
+            imageUrl: updated.imageUrl || LOGO_PLACEHOLDER,
+            isFreeDelivery: !!updated.isFreeDelivery,
+            advanceRequired: updated.advanceRequired === true || updated.advanceRequired === 'true',
+            selectedSize: (updated.sizes && updated.sizes.length > 0) ? (typeof updated.sizes[0] === 'object' ? updated.sizes[0].size : updated.sizes[0]) : 'Standard',
+            selectedColor: (updated.colors && updated.colors.length > 0) ? updated.colors[0] : '',
+            quantity: 1
+          }];
+          updateSummaryPricing();
+        }
+      });
+    }
+
+    function applyStoreSettings(s) {
+      if (!s) return;
+      storeSettings = { 
+        ...storeSettings, 
+        ...s,
+        delInside: s.delInside !== undefined ? Number(s.delInside) : 60,
+        delOutside: s.delOutside !== undefined ? Number(s.delOutside) : 130
+      };
+
+      const sName = s.storeName || 'NEXTFIT';
+      document.title = `${sName} | Checkout`;
+      document.getElementById('checkoutPageTitle').innerText = `${sName} | Checkout`;
+      document.getElementById('headerStoreName').innerText = sName;
+
+      if (s.logo) {
+        LOGO_PLACEHOLDER = s.logo;
+        document.getElementById('headerLogo').src = s.logo;
+        document.getElementById('pageFavicon').href = s.logo;
+      }
+
+      const city = storeSettings.insideCityName || 'Khulna';
+      document.getElementById('insideZoneLabel').innerText = `${city} সিটির ভেতরে`;
+      document.getElementById('outsideZoneLabel').innerText = `${city} সিটির বাইরে`;
+      document.getElementById('insideChargeText').innerText = `BDT ${storeSettings.delInside}`;
+      document.getElementById('outsideChargeText').innerText = `BDT ${storeSettings.delOutside}`;
+
+      updateSummaryPricing();
+    }
+
+    function calculateTotals() {
+      let subtotal = 0;
+      const items = Array.isArray(currentOrderItems) ? currentOrderItems : [];
+      const allFreeDelivery = items.length > 0 && items.every(item => item && item.isFreeDelivery);
+
+      items.forEach(item => {
+        if (item) {
+          subtotal += (Number(item.price) || 0) * (Number(item.quantity) || 1);
+        }
+      });
+
+      couponDiscountValue = 0;
+      if (appliedCoupon && appliedCoupon.value) {
+        if (appliedCoupon.type === 'percent') {
+          couponDiscountValue = Math.round((subtotal * Number(appliedCoupon.value)) / 100);
+        } else {
+          couponDiscountValue = Number(appliedCoupon.value) || 0;
+        }
+        if (couponDiscountValue > subtotal) couponDiscountValue = subtotal;
+      }
+
+      const zoneRadio = document.querySelector('input[name="deliveryZone"]:checked');
+      const zone = zoneRadio ? zoneRadio.value : 'inside';
+
+      let deliveryFee = zone === 'inside' ? Number(storeSettings.delInside || 60) : Number(storeSettings.delOutside || 130);
+      if (allFreeDelivery) deliveryFee = 0;
+
+      const grandTotal = Math.max(0, (subtotal - couponDiscountValue) + deliveryFee);
+      const payableAmount = selectedPaymentMode === 'advance' ? deliveryFee : grandTotal;
+
+      return { subtotal, deliveryFee, grandTotal, payableAmount, zone, discount: couponDiscountValue };
+    }
+
+    function updateSummaryPricing() {
+      const p = calculateTotals();
+      document.getElementById('fullPayDisplay').innerText = `BDT ${p.grandTotal}`;
+      document.getElementById('advancePayDisplay').innerText = `BDT ${p.deliveryFee}`;
+      setupStep3Review();
+    }
+
+    function setupStep3Review() {
+      const s3Items = document.getElementById('step3ItemsList');
+      if (!s3Items) return;
+      s3Items.innerHTML = '';
+
+      currentOrderItems.forEach(it => {
+        s3Items.innerHTML += `
+          <div class="flex items-center justify-between gap-3 bg-[#FAF8F5] p-3 rounded-2xl border border-[#EAE3D2]">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="${it.imageUrl || LOGO_PLACEHOLDER}" class="w-12 h-12 object-contain rounded-xl bg-white border border-[#EAE3D2] shrink-0">
+              <div class="min-w-0 text-xs">
+                <span class="font-extrabold text-slate-900 block truncate font-bengali">${it.name}</span>
+                <span class="text-slate-500 text-[11px] block mt-0.5">${it.selectedSize ? 'সাইজ: ' + it.selectedSize + ' · ' : ''}${it.selectedColor ? 'কালার: ' + it.selectedColor + ' · ' : ''}পরিমাণ: ${it.quantity}</span>
+              </div>
+            </div>
+            <span class="font-mono font-bold text-xs text-slate-900 shrink-0">BDT ${it.price * it.quantity}</span>
+          </div>
+        `;
+      });
+
+      const prices = calculateTotals();
+      document.getElementById('s3Subtotal').innerText = `BDT ${prices.subtotal}`;
+      document.getElementById('s3Delivery').innerText = prices.deliveryFee === 0 ? 'ফ্রি' : `BDT ${prices.deliveryFee}`;
+      
+      const discRow = document.getElementById('couponDiscountRow');
+      if (discRow) {
+        if (prices.discount > 0) {
+          discRow.classList.remove('hidden');
+          discRow.classList.add('flex');
+          document.getElementById('s3Discount').innerText = `- BDT ${prices.discount}`;
+          document.getElementById('couponDiscountLabel').innerText = `ডিসকাউন্ট (${appliedCoupon.code})`;
+        } else {
+          discRow.classList.add('hidden');
+          discRow.classList.remove('flex');
+        }
+      }
+
+      document.getElementById('s3GrandTotal').innerText = `BDT ${prices.payableAmount}`;
+    }
+
+    function handleDistrictChange(dist) {
+      autoDetectDeliveryZone();
+    }
+
+    function autoDetectDeliveryZone() {
+      const addrEl = document.getElementById('custAddress');
+      const distEl = document.getElementById('custDistrict');
+      const addrText = (addrEl ? addrEl.value : '').toLowerCase().trim();
+      const selectedDistrict = distEl ? distEl.value : '';
+
+      const targetCity = (storeSettings.insideCityName || 'Khulna').toLowerCase();
+      let targetZone = 'outside';
+      if (selectedDistrict.toLowerCase() === targetCity || addrText.includes(targetCity)) {
+        targetZone = 'inside';
+      }
+      const targetRadio = document.querySelector(`input[name="deliveryZone"][value="${targetZone}"]`);
+      if (targetRadio) targetRadio.checked = true;
+
+      updateSummaryPricing();
+    }
+
+    function selectPaymentMode(mode) {
+      selectedPaymentMode = mode;
+      const fullCard = document.getElementById('optCard-full');
+      const advCard = document.getElementById('optCard-advance');
+
+      if (mode === 'full') {
+        fullCard.className = "p-4 border-2 rounded-2xl cursor-pointer transition flex items-center justify-between border-slate-900 bg-[#FAF7F2]";
+        fullCard.querySelector('.rounded-full.shrink-0').innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-slate-900"></span>`;
+        if (advCard) {
+          advCard.className = "p-4 border rounded-2xl cursor-pointer transition flex items-center justify-between border-[#EAE3D2] hover:border-slate-800 bg-white";
+          advCard.querySelector('.rounded-full.shrink-0').innerHTML = '';
+        }
+      } else {
+        advCard.className = "p-4 border-2 rounded-2xl cursor-pointer transition flex items-center justify-between border-slate-900 bg-[#FAF7F2]";
+        advCard.querySelector('.rounded-full.shrink-0').innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-slate-900"></span>`;
+        fullCard.className = "p-4 border rounded-2xl cursor-pointer transition flex items-center justify-between border-[#EAE3D2] hover:border-slate-800 bg-white";
+        fullCard.querySelector('.rounded-full.shrink-0').innerHTML = '';
+      }
+      updateSummaryPricing();
+    }
+
+    function selectGatewayChannel(channel) {
+      selectedGateway = channel;
+      ['bkash', 'nagad', 'rocket'].forEach(gw => {
+        const btn = document.getElementById(`btnGW-${gw}`);
+        if (!btn) return;
+        if (gw === channel) {
+          if (gw === 'bkash') btn.className = "p-3 border-2 border-[#D12053] bg-[#FFF0F4] rounded-2xl flex flex-col items-center justify-center gap-1.5 transition";
+          if (gw === 'nagad') btn.className = "p-3 border-2 border-[#F7921E] bg-[#FFF6EE] rounded-2xl flex flex-col items-center justify-center gap-1.5 transition";
+          if (gw === 'rocket') btn.className = "p-3 border-2 border-[#8C3494] bg-[#FBF0FC] rounded-2xl flex flex-col items-center justify-center gap-1.5 transition";
+        } else {
+          btn.className = "p-3 border border-[#EAE3D2] bg-white rounded-2xl flex flex-col items-center justify-center gap-1.5 transition hover:border-slate-400";
+        }
+      });
+    }
+
+    async function applyCouponCode() {
+      const codeInput = document.getElementById('couponInput');
+      const msgEl = document.getElementById('couponStatusMessage');
+      const code = (codeInput?.value || '').trim().toUpperCase();
+
+      if (!code) {
+        showNotice({ icon: 'warning', title: 'কুপন কোড লিখুন', text: 'অনুগ্রহ করে কুপন কোডটি টাইপ করুন।' });
+        return;
+      }
+
+      msgEl.className = "text-[11px] font-bold mt-1.5 font-bengali text-amber-600";
+      msgEl.innerText = "যাচাই করা হচ্ছে...";
+      msgEl.classList.remove('hidden');
+
+      try {
+        const snap = await db.ref(`${PATHS.coupons}/${code}`).once('value');
+        const c = snap.val();
+
+        if (!c || c.active === false) {
+          msgEl.className = "text-[11px] font-bold mt-1.5 font-bengali text-rose-600";
+          msgEl.innerText = "ভুল অথবা মেয়াদোত্তীর্ণ কুপন কোড!";
+          appliedCoupon = null;
+          couponDiscountValue = 0;
+          updateSummaryPricing();
+          return;
+        }
+
+        const totals = calculateTotals();
+        if (c.minOrder && totals.subtotal < Number(c.minOrder)) {
+          msgEl.className = "text-[11px] font-bold mt-1.5 font-bengali text-rose-600";
+          msgEl.innerText = `এই কুপনের জন্য ন্যূনতম ৳${c.minOrder} টাকার অর্ডার করতে হবে।`;
+          appliedCoupon = null;
+          couponDiscountValue = 0;
+          updateSummaryPricing();
+          return;
+        }
+
+        appliedCoupon = { code: code, type: c.type, value: Number(c.value) };
+        msgEl.className = "text-[11px] font-bold mt-1.5 font-bengali text-emerald-600";
+        msgEl.innerText = `✓ কুপন "${code}" সফলভাবে যুক্ত হয়েছে!`;
+        updateSummaryPricing();
+      } catch (err) {
+        msgEl.className = "text-[11px] font-bold mt-1.5 font-bengali text-rose-600";
+        msgEl.innerText = "কুপন যাচাই করা সম্ভব হয়নি।";
+      }
+    }
+
+    // অর্ডার কনফার্ম ক্লিক হ্যান্ডলার (শতভাগ নিশ্চিত পপআপ ট্রিগার)
+    function triggerCheckoutProcessing() {
+      const name = (document.getElementById('custName')?.value || '').trim();
+      const phone = (document.getElementById('custPhone')?.value || '').trim();
+      const address = (document.getElementById('custAddress')?.value || '').trim();
+      const district = (document.getElementById('custDistrict')?.value || '').trim();
+
+      if (!name) {
+        showNotice({ icon: 'warning', title: 'নাম দিন', text: 'অনুগ্রহ করে আপনার পুরো নাম প্রদান করুন।' });
+        document.getElementById('custName')?.focus();
+        return;
+      }
+      if (!phone || phone.length < 11) {
+        showNotice({ icon: 'warning', title: 'ফোন নম্বর দিন', text: '১১ ডিজিটের সঠিক মোবাইল নম্বরটি লিখুন।' });
+        document.getElementById('custPhone')?.focus();
+        return;
+      }
+      if (!district) {
+        showNotice({ icon: 'warning', title: 'জেলা সিলেক্ট করুন', text: 'অনুগ্রহ করে ড্রপডাউন থেকে আপনার জেলা নির্বাচন করুন।' });
+        document.getElementById('custDistrict')?.focus();
+        return;
+      }
+      if (!address) {
+        showNotice({ icon: 'warning', title: 'ঠিকানা দিন', text: 'অনুগ্রহ করে আপনার সম্পূর্ণ ডেলিভারি ঠিকানা লিখুন।' });
+        document.getElementById('custAddress')?.focus();
+        return;
+      }
+
+      if (!currentOrderItems || currentOrderItems.length === 0) {
+        currentOrderItems = [{
+          id: productId || 'item_1',
+          name: singleProductData ? singleProductData.name : 'অর্ডার আইটেম',
+          price: singleProductData ? Number(singleProductData.discountPrice || singleProductData.regularPrice || 0) : 0,
+          quantity: 1,
+          imageUrl: LOGO_PLACEHOLDER
+        }];
+      }
+
+      openStandalonePortal(selectedGateway || 'bkash');
+    }
+
+    function openStandalonePortal(gateway) {
+      const gw = gateway || selectedGateway || 'bkash';
+      const prices = calculateTotals();
+      let rawAccountNum = String(storeSettings[gw] || storeSettings.phone || '01951149441');
+      const pureDigits = rawAccountNum.replace(/[^0-9]/g, '');
+      const accountNum = pureDigits.length >= 11 ? pureDigits.slice(-11) : (pureDigits || '01951149441');
+      
+      document.getElementById('portalAccountDisplay').innerText = accountNum;
+      document.getElementById('portalAmountDisplay').innerText = `৳${prices.payableAmount}`;
+      document.getElementById('gwStoreName').innerText = storeSettings.storeName || 'NEXTFIT';
+
+      const gwBody = document.getElementById('gwColoredBody');
+      const gwLogo = document.getElementById('gwBrandLogo');
+      const gwInputLabel = document.getElementById('gwInputLabel');
+      const confirmBtn = document.getElementById('portalConfirmBtn');
+
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `<span>কনফার্ম করুন</span>`;
+      
+      const sInput = document.getElementById('portalSenderPhone');
+      const trxInput = document.getElementById('portalTrxId');
+      if (sInput) {
+        sInput.value = '';
+        sInput.classList.remove('!border-rose-500', 'ring-2', 'ring-rose-400');
+      }
+      if (trxInput) trxInput.value = '';
+
+      if (gw === 'bkash') {
+        gwBody.style.backgroundColor = '#D12053';
+        gwLogo.src = 'https://images.seeklogo.com/logo-png/47/1/bkash-logo-png_seeklogo-471379.png';
+        gwInputLabel.innerText = 'আপনার বিকাশ নম্বরটি লিখুন';
+        confirmBtn.className = "w-full bg-[#D12053] hover:bg-[#b01744] text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 shadow font-bengali";
+      } else if (gw === 'nagad') {
+        gwBody.style.backgroundColor = '#F7921E';
+        gwLogo.src = 'https://old.thefinancialexpress.com.bd/uploads/1585114992.jpg';
+        gwInputLabel.innerText = 'আপনার নগদ নম্বরটি লিখুন';
+        confirmBtn.className = "w-full bg-[#F7921E] hover:bg-[#e07f12] text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 shadow font-bengali";
+      } else {
+        gwBody.style.backgroundColor = '#8C3494';
+        gwLogo.src = 'https://images.seeklogo.com/logo-png/33/1/dutch-bangla-rocket-logo-png_seeklogo-331206.png';
+        gwInputLabel.innerText = 'আপনার রকেট নম্বরটি লিখুন';
+        confirmBtn.className = "w-full bg-[#8C3494] hover:bg-[#742b7a] text-white py-3 rounded-xl font-bold text-xs transition active:scale-95 shadow font-bengali";
+      }
+
+      const portal = document.getElementById('portal-gateway');
+      if (portal) {
+        portal.classList.add('show-modal');
+        portal.style.setProperty('display', 'flex', 'important');
+        portal.scrollTop = 0;
+      }
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+      setTimeout(() => {
+        const input = document.getElementById('portalSenderPhone');
+        if (input) input.focus();
+      }, 150);
+    }
+
+    function closeStandalonePortal() {
+      const portal = document.getElementById('portal-gateway');
+      if (portal) {
+        portal.classList.remove('show-modal');
+        portal.style.setProperty('display', 'none', 'important');
+      }
+      document.body.style.overflow = '';
+    }
+
+    function copyPortalNumber(elementId) {
+      const num = document.getElementById(elementId).innerText.trim();
+      navigator.clipboard.writeText(num).then(() => {
+        const icon = document.getElementById('copyIconState');
+        if (icon) {
+          icon.setAttribute('data-lucide', 'check');
+          if (window.lucide) lucide.createIcons();
+          setTimeout(() => {
+            icon.setAttribute('data-lucide', 'copy');
+            if (window.lucide) lucide.createIcons();
+          }, 2000);
+        }
+      });
+    }
+
+    function submitFinalVerifiedOrder() {
+      const senderInput = document.getElementById('portalSenderPhone');
+      const senderPhone = (senderInput?.value || '').trim();
+      const trxId = (document.getElementById('portalTrxId')?.value || '').trim();
+
+      senderInput.classList.remove('!border-rose-500', 'ring-2', 'ring-rose-400');
+
+      if (!senderPhone || senderPhone.length < 11) {
+        senderInput.classList.add('!border-rose-500', 'ring-2', 'ring-rose-400');
+        senderInput.focus();
+        showNotice({ 
+          icon: 'warning', 
+          title: 'মোবাইল নম্বর দিন', 
+          text: 'যে নম্বর থেকে টাকা পাঠিয়েছেন সেই ১১ ডিজিটের সঠিক নম্বরটি লিখুন।' 
+        });
+        return;
+      }
+
+      const pBtn = document.getElementById('portalConfirmBtn');
+      pBtn.disabled = true;
+      pBtn.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> অর্ডার প্রসেস হচ্ছে...</span>`;
+
+      const p = calculateTotals();
+      const name = (document.getElementById('custName')?.value || '').trim();
+      const phone = (document.getElementById('custPhone')?.value || '').trim();
+      const address = (document.getElementById('custAddress')?.value || '').trim();
+
+      const sanitizedItems = currentOrderItems.map(it => ({
+        id: String(it.id || ''),
+        name: String(it.name || ''),
+        price: Number(it.price) || 0,
+        quantity: Number(it.quantity) || 1,
+        imageUrl: String(it.imageUrl || ''),
+        selectedSize: String(it.selectedSize || ''),
+        selectedColor: String(it.selectedColor || '')
+      }));
+
+      const orderPayload = {
+        customerName: name,
+        phone: phone,
+        district: document.getElementById('custDistrict')?.value || '',
+        address: address,
+        orderNote: (document.getElementById('custOrderNote')?.value || '').trim(),
+        deliveryZone: p.zone === 'inside' ? 'Inside City' : 'Outside City',
+        deliveryFee: Number(p.deliveryFee) || 0,
+        subtotal: Number(p.subtotal) || 0,
+        discountAmount: Number(p.discount) || 0,
+        couponCode: appliedCoupon ? appliedCoupon.code : '',
+        totalAmount: Number(p.grandTotal) || 0,
+        paymentType: selectedPaymentMode,
+        paymentMethod: `ONLINE (${selectedGateway.toUpperCase()})`,
+        advancePaid: Number(p.payableAmount) || 0,
+        codAmount: Math.max(0, (Number(p.grandTotal) || 0) - (Number(p.payableAmount) || 0)),
+        senderNumber: senderPhone,
+        trxId: trxId || '',
+        items: sanitizedItems,
+        status: 'Pending',
+        createdAt: Date.now()
+      };
+
+      let isSuccessTriggered = false;
+      function showOrderSuccessUI(orderRefKey) {
+        if (isSuccessTriggered) return;
+        isSuccessTriggered = true;
+
+        try { sendOrderNotificationEmail(orderPayload, orderRefKey || Date.now().toString()); } catch (e) {}
+
+        if (typeof fbq === 'function') {
+          try {
+            fbq('track', 'Purchase', {
+              content_ids: currentOrderItems.map(it => it.id),
+              content_type: 'product',
+              value: Number(p.grandTotal || 0),
+              currency: 'BDT'
+            });
+          } catch (e) {}
+        }
+
+        if (fromCart) localStorage.removeItem(CART_STORAGE_KEY);
+        if (typeof confetti === 'function') {
+          try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
+        }
+
+        closeStandalonePortal();
+        document.getElementById('screen-checkout').classList.add('hidden');
+
+        const successM = document.getElementById('successModal');
+        successM.classList.remove('hidden');
+        successM.classList.add('flex');
+        refreshIcons();
+      }
+
+      const safetyTimer = setTimeout(() => {
+        showOrderSuccessUI(Date.now().toString().slice(-6));
+      }, 3000);
+
+      db.ref(PATHS.orders).push(orderPayload)
+        .then((newOrderRef) => {
+          clearTimeout(safetyTimer);
+          showOrderSuccessUI(newOrderRef ? newOrderRef.key : null);
+        })
+        .catch(err => {
+          clearTimeout(safetyTimer);
+          console.warn("Direct push warning:", err);
+          showOrderSuccessUI(Date.now().toString().slice(-6));
+        });
+    }
+
+    async function sendOrderNotificationEmail(order, orderId) {
+      if (!window.emailjs) return;
+      try {
+        emailjs.init("ppl210i9r_ccGVUkq");
+        const shortId = orderId ? orderId.slice(-6).toUpperCase() : Date.now().toString().slice(-6);
+        let itemsSummary = (order.items || []).map(i => `• ${i.name} [Qty: ${i.quantity}] - ৳${i.price * i.quantity}`).join('\n');
+
+        await emailjs.send("service_ymk6s7e", "template_2e1vxlq", {
+          to_email: "jabedbinz@gmail.com",
+          order_id: `#${shortId}`,
+          customer_name: order.customerName || 'Customer',
+          customer_phone: order.phone || 'N/A',
+          customer_address: `${order.address || ''}${order.district ? ', ' + order.district : ''}`,
+          items_summary: itemsSummary,
+          total_amount: `৳${order.totalAmount || 0}`,
+          cod_amount: `৳0 (Online Paid)`,
+          order_date: new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' })
+        });
+      } catch (err) {}
+    }
+
+    function handleSmartBack() {
+      const portal = document.getElementById('portal-gateway');
+      if (portal && portal.classList.contains('show-modal')) {
+        closeStandalonePortal();
+        return;
+      }
+      window.location.href = homeShopUrl;
+    }
+
+    function showNotice({ title, text, icon = 'warning' }) {
+      if (window.Swal) {
+        Swal.fire({
+          icon: icon,
+          title: `<span style="font-weight:800; font-size:1.1rem; color:#0F172A;">${title}</span>`,
+          html: `<p style="font-size:0.85rem; color:#475569; line-height:1.5;">${text}</p>`,
+          confirmButtonText: 'ঠিক আছে',
+          confirmButtonColor: '#B38B21',
+          customClass: {
+            popup: 'rounded-3xl border border-[#EAE3D2] p-5 shadow-2xl bg-[#FCFAF6]',
+            confirmButton: 'rounded-xl font-bold px-6 py-2.5 text-xs font-bengali'
+          }
+        });
+      } else {
+        alert(text);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSummaryPricing();
+      refreshIcons();
+    });
+  </script>
+</body>
+</html>
