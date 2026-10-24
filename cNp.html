@@ -3,14 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <script>
-    (function() {
-      const allowedHosts = ['nexfitbd.com', 'www.nexfitbd.com', 'localhost', '127.0.0.1'];
-      if (!allowedHosts.includes(window.location.hostname)) {
-        document.documentElement.innerHTML = '';
-        window.location.replace('https://www.google.com');
-      }
-    })();
-  </script>
+  (function()
+    const allowedHosts = [
+      'nexfitbd.com', 
+      'www.nexfitbd.com', 
+      'nexfit02.web.app', 
+      'nexfit02.firebaseapp.com'
+    ];
+    
+    if (!allowedHosts.includes(window.location.hostname)) {
+      document.documentElement.innerHTML = '';
+      window.location.replace('https://www.google.com');
+    }
+  })();
+</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title id="adminPageTitle">NEXTFIT | Control Console</title>
 
