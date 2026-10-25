@@ -139,8 +139,123 @@
       </div>
     </header>
 
-    <!-- CHECKOUT MAIN CONTENT (Direct & Instant) -->
-    <main id="screen-checkout" class="flex-1 max-w-xl mx-auto w-full px-4 py-8 space-y-6">
+    <!-- SCREEN 1: PRODUCT SHOWCASE (NEXFIT LUXURY GOLD THEME) -->
+    <main id="screen-product" class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 pb-28 md:pb-12 space-y-6">
+      
+      <div id="productLoadingBox" class="w-full aspect-square max-w-md mx-auto bg-white border border-[#EAE3D2] rounded-3xl flex items-center justify-center shadow-sm">
+        <div class="w-8 h-8 border-3 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <div id="productMainContent" class="hidden grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 items-start">
+        
+        <!-- Left: Image Gallery -->
+        <div class="md:col-span-6 space-y-3">
+          <div class="w-full aspect-[4/5] bg-white rounded-3xl border border-[#EAE3D2] overflow-hidden relative shadow-sm flex items-center justify-center p-2">
+            <img id="pShowcaseImage" src="" alt="Product" class="w-full h-full object-contain rounded-2xl select-none transition-transform duration-300">
+          </div>
+          <div id="galleryThumbnailsContainer" class="hidden flex gap-2.5 overflow-x-auto py-1 no-scrollbar"></div>
+        </div>
+
+        <!-- Right: Info, Variants & Buy Action -->
+        <div class="md:col-span-6 space-y-4 font-bengali">
+          <div class="border-b border-[#F2EDE4] pb-3.5 space-y-2">
+            <span id="pCategoryBadge" class="inline-block text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-[#FAF5EA] border border-[#EAE3D2] px-2.5 py-0.5 rounded-full">NEXFIT Premium</span>
+            <h1 id="pShowcaseTitle" class="text-xl sm:text-2xl font-black text-slate-900 leading-snug"></h1>
+            
+            <div class="flex items-baseline gap-3 pt-1">
+              <span id="pShowcasePrice" class="text-2xl font-black text-amber-900 font-mono">BDT 0</span>
+              <span id="pShowcaseOldPrice" class="text-sm font-bold text-slate-400 line-through font-mono hidden"></span>
+            </div>
+          </div>
+
+          <!-- Color Option -->
+          <div id="colorsWrap" class="hidden space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-800">কালার নির্বাচন করুন:</span>
+              <span id="selectedColorNameText" class="text-amber-800 font-bold"></span>
+            </div>
+            <div id="colorsList" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Size Option -->
+          <div id="sizesWrap" class="hidden space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-800">সাইজ নির্ধারণ করুন: <span class="text-rose-500">*</span></span>
+              <span id="selectedSizeStockText" class="text-[11px] font-bold text-emerald-700"></span>
+            </div>
+            <div id="sizesList" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Quantity -->
+          <div class="flex items-center justify-between py-3 border-y border-[#F2EDE4]">
+            <span class="text-xs font-bold text-slate-800">পরিমাণ (Quantity)</span>
+            <div class="inline-flex items-center border border-[#EAE3D2] rounded-xl bg-[#FAF8F5] p-1">
+              <button type="button" onclick="changeQty(-1)" class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-slate-700 hover:bg-white active:scale-95 transition">-</button>
+              <span id="qtyCount" class="w-9 text-center text-xs font-black text-slate-900 font-mono">1</span>
+              <button type="button" onclick="changeQty(1)" class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-slate-700 hover:bg-white active:scale-95 transition">+</button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="space-y-2.5 pt-1">
+            <button id="desktopCheckoutBtn" type="button" onclick="startCheckoutWizard()" class="w-full gold-shimmer text-amber-200 hover:text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase transition active:scale-[0.99] flex items-center justify-center gap-2 shadow-lg border border-[#C5A880]/30 cursor-pointer">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+              <span class="text-base">অর্ডার করুন (Buy Now)</span>
+            </button>
+
+            <a id="btnProductWaOrder" href="#" target="_blank" class="w-full bg-[#FAF8F5] hover:bg-[#F2EDE4] text-slate-800 border border-[#EAE3D2] py-3 rounded-2xl font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+              <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+              <span>হোয়াটসঅ্যাপে অর্ডার করুন</span>
+            </a>
+          </div>
+
+          <!-- Accordion: Description -->
+          <div id="pDescriptionWrap" class="border border-[#EAE3D2] rounded-2xl overflow-hidden bg-white hidden">
+            <button type="button" onclick="toggleLocalAccordion('descContentBox', 'descToggleIcon')" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FAF8F5] transition select-none">
+              <span class="text-xs font-extrabold text-slate-900 tracking-wide">প্রোডাক্ট বিবরণ ও বিস্তারিত</span>
+              <i data-lucide="chevron-down" id="descToggleIcon" class="w-4 h-4 text-slate-500 transition-transform duration-200"></i>
+            </button>
+            <div id="descContentBox" class="hidden p-4 text-xs text-slate-600 leading-relaxed whitespace-pre-line border-t border-[#F2EDE4] bg-[#FAF8F5]">
+              <p id="pShowcaseDescription"></p>
+            </div>
+          </div>
+
+          <!-- Delivery & Return Policy -->
+          <div class="border border-[#EAE3D2] rounded-2xl overflow-hidden bg-white">
+            <button type="button" onclick="toggleLocalAccordion('policyContentBox', 'policyToggleIcon')" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#FAF8F5] transition select-none">
+              <span class="text-xs font-extrabold text-slate-900 tracking-wide">ডেলিভারি ও রিটার্ন পলিসি</span>
+              <i data-lucide="chevron-down" id="policyToggleIcon" class="w-4 h-4 text-slate-500 transition-transform duration-200"></i>
+            </button>
+            <div id="policyContentBox" class="hidden p-4 text-xs text-slate-600 leading-relaxed border-t border-[#F2EDE4] bg-[#FAF8F5] space-y-1.5">
+              <p>• সারা বাংলাদেশে হোম ডেলিভারি সুবিধা।</p>
+              <p>• ডেলিভারি ম্যানের সামনে প্রোডাক্ট দেখে চেক করে নেওয়ার সুযোগ।</p>
+              <p>• সাইজ পরিবর্তন বা এক্সচেঞ্জের সহজ পলিসি।</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- Mobile Sticky Bottom Bar -->
+    <div id="stickyOrderBar" class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EAE3D2] px-4 py-2.5 shadow-xl transition-transform duration-300">
+      <div class="flex items-center justify-between gap-3 max-w-md mx-auto">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img id="stickyThumbImg" src="" class="w-10 h-10 object-contain rounded-xl border border-[#EAE3D2] shrink-0 bg-white p-0.5">
+          <div class="min-w-0 font-bengali">
+            <span id="stickyBottomTitle" class="text-xs font-bold text-slate-900 block truncate leading-tight">Product</span>
+            <span id="stickyBottomPrice" class="text-sm font-black text-amber-900 font-mono block">BDT 0</span>
+          </div>
+        </div>
+        <button type="button" onclick="startCheckoutWizard()" class="gold-shimmer text-amber-200 py-2.5 px-5 rounded-xl font-bold text-xs uppercase tracking-wider transition active:scale-95 flex items-center gap-1.5 shadow-md shrink-0 font-bengali">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>অর্ডার করুন</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: 1-PAGE EXPRESS CHECKOUT (Hidden initially for single products) -->
+    <main id="screen-checkout" class="hidden flex-1 max-w-xl mx-auto w-full px-4 py-8 space-y-6">
       
       <!-- STEP 1: DELIVERY DETAILS -->
       <div class="bg-white border border-[#EAE3D2] rounded-3xl p-6 shadow-[0_6px_25px_-4px_rgba(0,0,0,0.03)] space-y-5">
@@ -446,6 +561,9 @@
     let singleProductData = null;
     let selectedPaymentMode = 'full';
     let selectedGateway = 'bkash';
+    let selectedSize = '';
+    let selectedColor = '';
+    let singleQty = 1;
 
     // ১. তাৎক্ষণিক আইটেম লোড (Instant Load from Cart or Instant Item)
     if (fromCart) {
@@ -520,11 +638,17 @@
     });
 
     // প্রোডাক্ট ব্যাকগ্রাউন্ড লাইভ ফেচ
-    if (productId && (!singleProductData || currentOrderItems.length === 0)) {
+    if (productId) {
       db.ref(`${PATHS.products}/${productId}`).once('value', snap => {
         const updated = snap.val();
         if (updated) {
           singleProductData = updated;
+          if (!selectedSize && updated.sizes && updated.sizes.length > 0) {
+            selectedSize = typeof updated.sizes[0] === 'object' ? updated.sizes[0].size : updated.sizes[0];
+          }
+          if (!selectedColor && updated.colors && updated.colors.length > 0) {
+            selectedColor = updated.colors[0];
+          }
           currentOrderItems = [{
             id: productId,
             name: updated.name || 'NEXFIT Item',
@@ -532,10 +656,13 @@
             imageUrl: updated.imageUrl || LOGO_PLACEHOLDER,
             isFreeDelivery: !!updated.isFreeDelivery,
             advanceRequired: updated.advanceRequired === true || updated.advanceRequired === 'true',
-            selectedSize: (updated.sizes && updated.sizes.length > 0) ? (typeof updated.sizes[0] === 'object' ? updated.sizes[0].size : updated.sizes[0]) : 'Standard',
-            selectedColor: (updated.colors && updated.colors.length > 0) ? updated.colors[0] : '',
-            quantity: 1
+            selectedSize: selectedSize || 'Standard',
+            selectedColor: selectedColor || '',
+            quantity: singleQty || 1
           }];
+          if (!fromCart) {
+            renderProductShowcase(singleProductData);
+          }
           updateSummaryPricing();
         }
       });
@@ -567,6 +694,192 @@
       document.getElementById('outsideChargeText').innerText = `BDT ${storeSettings.delOutside}`;
 
       updateSummaryPricing();
+    }
+
+    function toggleLocalAccordion(contentId, iconId) {
+      const box = document.getElementById(contentId);
+      const icon = document.getElementById(iconId);
+      if (!box) return;
+      if (box.classList.contains('hidden')) {
+        box.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
+      } else {
+        box.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
+      }
+    }
+
+    function renderProductShowcase(p) {
+      if (!p) return;
+      document.getElementById('productLoadingBox')?.classList.add('hidden');
+      document.getElementById('productMainContent')?.classList.remove('hidden');
+
+      const imgEl = document.getElementById('pShowcaseImage');
+      imgEl.src = p.imageUrl || LOGO_PLACEHOLDER;
+
+      // অ্যাডমিন থেকে আপলোড করা একাধিক ছবি গ্যালারিতে দেখানো
+      const gallery = p.gallery || (p.imageUrl ? [p.imageUrl] : []);
+      const thumbCont = document.getElementById('galleryThumbnailsContainer');
+      if (thumbCont) {
+        if (gallery.length > 1) {
+          thumbCont.classList.remove('hidden');
+          thumbCont.innerHTML = gallery.map(url => `
+            <img src="${url}" onclick="document.getElementById('pShowcaseImage').src='${url}'" class="w-12 h-12 object-contain rounded-xl border border-[#EAE3D2] bg-white p-0.5 cursor-pointer hover:border-amber-600 transition shrink-0">
+          `).join('');
+        } else {
+          thumbCont.classList.add('hidden');
+        }
+      }
+
+      document.getElementById('pShowcaseTitle').innerText = p.name || '';
+      const catBadge = document.getElementById('pCategoryBadge');
+      if (catBadge) catBadge.innerText = p.category || 'NEXFIT Premium';
+
+      const price = Number(p.discountPrice || p.regularPrice) || 0;
+      document.getElementById('pShowcasePrice').innerText = `BDT ${price}`;
+      
+      const oldPriceEl = document.getElementById('pShowcaseOldPrice');
+      if (p.regularPrice && Number(p.regularPrice) > price) {
+        oldPriceEl.innerText = `BDT ${p.regularPrice}`;
+        oldPriceEl.classList.remove('hidden');
+      } else {
+        oldPriceEl.classList.add('hidden');
+      }
+
+      // বিবরণ
+      const desc = (p.description || '').trim();
+      const descEl = document.getElementById('pShowcaseDescription');
+      const descWrap = document.getElementById('pDescriptionWrap');
+      if (desc && descEl && descWrap) {
+        descEl.innerText = desc;
+        descWrap.classList.remove('hidden');
+      }
+
+      // কালার
+      if (p.colors && p.colors.length > 0) {
+        document.getElementById('colorsWrap').classList.remove('hidden');
+        const cList = document.getElementById('colorsList');
+        cList.innerHTML = '';
+        if (!selectedColor || !p.colors.includes(selectedColor)) selectedColor = p.colors[0];
+        document.getElementById('selectedColorNameText').innerText = selectedColor;
+
+        p.colors.forEach(c => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const isSel = (c === selectedColor);
+          btn.className = `px-3.5 py-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${isSel ? 'bg-amber-600 text-white border-amber-600 shadow-sm' : 'bg-white border-[#EAE3D2] text-slate-800 hover:border-amber-600'}`;
+          btn.innerText = c;
+          btn.onclick = () => {
+            selectedColor = c;
+            document.getElementById('selectedColorNameText').innerText = c;
+            syncProductOrderState();
+          };
+          cList.appendChild(btn);
+        });
+      }
+
+      // সাইজ
+      if (p.sizes && p.sizes.length > 0) {
+        document.getElementById('sizesWrap').classList.remove('hidden');
+        renderProductSizeButtons(p);
+      } else {
+        document.getElementById('sizesWrap').classList.add('hidden');
+        selectedSize = '';
+      }
+
+      syncProductOrderState();
+      refreshIcons();
+    }
+
+    function renderProductSizeButtons(p) {
+      const sList = document.getElementById('sizesList');
+      if (!sList) return;
+      sList.innerHTML = '';
+
+      p.sizes.forEach(s => {
+        const val = typeof s === 'object' ? s.size : s;
+        const isSelected = (val === selectedSize);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-4 py-2 rounded-xl border text-xs font-bold font-mono transition active:scale-95 ${
+          isSelected 
+            ? 'bg-slate-900 text-amber-200 border-slate-900 shadow-sm' 
+            : 'bg-white border-[#EAE3D2] text-slate-800 hover:border-slate-800'
+        }`;
+        btn.innerText = val;
+        btn.onclick = () => {
+          selectedSize = val;
+          renderProductSizeButtons(p);
+          syncProductOrderState();
+        };
+        sList.appendChild(btn);
+      });
+
+      const stockEl = document.getElementById('selectedSizeStockText');
+      if (stockEl) {
+        stockEl.innerText = selectedSize ? `নির্বাচিত সাইজ: ${selectedSize}` : 'একটি সাইজ নির্বাচন করুন';
+      }
+    }
+
+    function changeQty(delta) {
+      singleQty += delta;
+      if (singleQty < 1) singleQty = 1;
+      document.getElementById('qtyCount').innerText = singleQty;
+      syncProductOrderState();
+    }
+
+    function syncProductOrderState() {
+      if (!singleProductData) return;
+      const unitPrice = Number(singleProductData.discountPrice || singleProductData.regularPrice || 0);
+
+      currentOrderItems = [{
+        id: singleProductData.id || productId,
+        name: singleProductData.name || 'NEXFIT Item',
+        price: unitPrice,
+        imageUrl: singleProductData.imageUrl || LOGO_PLACEHOLDER,
+        isFreeDelivery: !!singleProductData.isFreeDelivery,
+        advanceRequired: singleProductData.advanceRequired === true || singleProductData.advanceRequired === 'true',
+        selectedSize: selectedSize || '',
+        selectedColor: selectedColor || '',
+        quantity: singleQty
+      }];
+
+      // স্টিকি বটম বার আপডেট
+      const sThumb = document.getElementById('stickyThumbImg');
+      if (sThumb) sThumb.src = singleProductData.imageUrl || LOGO_PLACEHOLDER;
+      const sTitle = document.getElementById('stickyBottomTitle');
+      if (sTitle) sTitle.innerText = singleProductData.name || '';
+      const sPrice = document.getElementById('stickyBottomPrice');
+      if (sPrice) sPrice.innerText = `BDT ${unitPrice * singleQty}`;
+
+      // হোয়াটসঅ্যাপ লিঙ্ক
+      const waBtn = document.getElementById('btnProductWaOrder');
+      if (waBtn && storeSettings.phone) {
+        const cleanP = storeSettings.phone.replace(/[^0-9]/g, '');
+        const waNum = cleanP.startsWith('88') ? cleanP : ('88' + cleanP);
+        waBtn.href = `https://wa.me/${waNum}?text=${encodeURIComponent('Hello, I want to order: ' + singleProductData.name + (selectedSize ? ' [Size: ' + selectedSize + ']' : '') + ' - Total: BDT ' + (unitPrice * singleQty))}`;
+      }
+
+      updateSummaryPricing();
+    }
+
+    // "অর্ডার করুন" ক্লিক করলে ফর্ম স্ক্রিনে যাওয়া
+    function startCheckoutWizard() {
+      if (!fromCart && singleProductData && singleProductData.sizes && singleProductData.sizes.length > 0 && !selectedSize) {
+        showNotice({ icon: 'warning', title: 'সাইজ নির্বাচন করুন', text: 'অর্ডার করতে অনুগ্রহ করে একটি সাইজ সিলেক্ট করুন।' });
+        return;
+      }
+
+      syncProductOrderState();
+
+      document.getElementById('screen-product')?.classList.add('hidden');
+      document.getElementById('stickyOrderBar')?.classList.add('hidden');
+      document.getElementById('screen-checkout')?.classList.remove('hidden');
+
+      updateSummaryPricing();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      refreshIcons();
     }
 
     function calculateTotals() {
@@ -1011,28 +1324,26 @@
         closeStandalonePortal();
         return;
       }
+      const checkoutScreen = document.getElementById('screen-checkout');
+      if (checkoutScreen && !checkoutScreen.classList.contains('hidden') && !fromCart && productId) {
+        // ফর্ম স্ক্রিন থেকে ব্যাক বাটনে প্রোডাক্ট শোকেসে ফিরে আসবে
+        checkoutScreen.classList.add('hidden');
+        document.getElementById('screen-product')?.classList.remove('hidden');
+        document.getElementById('stickyOrderBar')?.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       window.location.href = homeShopUrl;
     }
 
-    function showNotice({ title, text, icon = 'warning' }) {
-      if (window.Swal) {
-        Swal.fire({
-          icon: icon,
-          title: `<span style="font-weight:800; font-size:1.1rem; color:#0F172A;">${title}</span>`,
-          html: `<p style="font-size:0.85rem; color:#475569; line-height:1.5;">${text}</p>`,
-          confirmButtonText: 'ঠিক আছে',
-          confirmButtonColor: '#B38B21',
-          customClass: {
-            popup: 'rounded-3xl border border-[#EAE3D2] p-5 shadow-2xl bg-[#FCFAF6]',
-            confirmButton: 'rounded-xl font-bold px-6 py-2.5 text-xs font-bengali'
-          }
-        });
-      } else {
-        alert(text);
-      }
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
+      if (fromCart) {
+        document.getElementById('screen-product')?.classList.add('hidden');
+        document.getElementById('stickyOrderBar')?.classList.add('hidden');
+        document.getElementById('screen-checkout')?.classList.remove('hidden');
+      } else if (singleProductData) {
+        renderProductShowcase(singleProductData);
+      }
       updateSummaryPricing();
       refreshIcons();
     });
